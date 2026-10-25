@@ -90,9 +90,38 @@
           {% endfor %}
         </ul>
       </section>
+
+      <section class="card p-6" aria-labelledby="ach-title">
+        <div class="flex items-baseline justify-between gap-3">
+          <h2 id="ach-title" class="text-lg font-black">Постижения</h2>
+          <span class="text-sm font-bold text-stone-500 dark:text-stone-400">{{ earned_count }} от {{ achievements|length }}</span>
+        </div>
+        <ul class="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          {% for a in achievements %}
+            <li class="flex flex-col items-center text-center" title="{{ a.description }}">
+              <span class="grid size-14 place-items-center rounded-2xl text-xl {% if a.earned %}bg-gradient-to-br text-white shadow-md {{ a.theme.glow }}{% else %}bg-stone-100 text-stone-300 dark:bg-stone-800 dark:text-stone-600{% endif %}">
+                <i class="fa-solid {% if a.earned %}{{ a.icon }}{% else %}fa-lock{% endif %}" aria-hidden="true"></i>
+              </span>
+              <span class="mt-2 text-xs leading-tight font-extrabold {% if not a.earned %}text-stone-400 dark:text-stone-500{% endif %}">{{ a.title }}</span>
+              <span class="sr-only">{% if a.earned %}спечелено{% else %}заключено{% endif %}: {{ a.description }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
     </div>
 
     <aside class="space-y-6">
+      <a href="{% if deck_size %}{% url 'vocabulary:review' %}{% else %}{% url 'vocabulary:topics' %}{% endif %}" class="card card-link flex items-center gap-4 border-amber-200 bg-amber-50 p-5 hover:border-amber-400 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <span class="grid size-14 shrink-0 place-items-center rounded-2xl bg-amber-400 text-2xl text-amber-950"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+        <span class="flex-1">
+          <span class="block text-lg font-black">Преговор на думи</span>
+          <span class="text-sm font-bold text-stone-600 dark:text-stone-400">
+            {% if not deck_size %}Запази думи от речника, за да започнеш.{% elif due_words %}{{ due_words }} {% if due_words == 1 %}дума чака{% else %}думи чакат{% endif %} днес{% else %}Всичко е преговорено. Браво!{% endif %}
+          </span>
+        </span>
+        <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+      </a>
+
       <section class="card p-6">
         <h2 class="text-lg font-semibold">Фрази за пътуване</h2>
         <ul class="mt-4 grid grid-cols-2 gap-2">
@@ -118,6 +147,15 @@
           <p class="mt-3 text-sm text-stone-600 dark:text-stone-400">Тук ще виждаш уроците, които завършиш.</p>
         {% endif %}
       </section>
+
+      <a href="{% url 'core:leaderboard' %}" class="card card-link flex items-center gap-4 p-5 hover:border-amber-400">
+        <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-xl text-white"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+        <span class="flex-1">
+          <span class="block font-black">Седмична класация</span>
+          <span class="text-sm font-bold text-stone-600 dark:text-stone-400">Виж кой е събрал най-много XP</span>
+        </span>
+        <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+      </a>
     </aside>
   </div>
 </div>

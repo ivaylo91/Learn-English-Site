@@ -70,6 +70,75 @@
     document.querySelectorAll("[data-speak]").forEach(function (b) { b.hidden = true; });
   }
 
+  // Small toast message at the bottom of the screen
+  var toastTimer = null;
+  function toast(text, icon) {
+    var el = document.getElementById("toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      el.setAttribute("role", "status");
+      el.className = "fixed inset-x-4 bottom-6 z-50 mx-auto flex w-fit max-w-sm items-center gap-2 rounded-2xl bg-stone-900 px-4 py-3 text-sm font-bold text-white shadow-xl transition-[opacity,transform] duration-300 dark:bg-white dark:text-stone-900";
+      document.body.appendChild(el);
+    }
+    el.innerHTML = '<i class="fa-solid ' + (icon || "fa-circle-check") + ' text-amber-400" aria-hidden="true"></i><span></span>';
+    el.querySelector("span").textContent = text;
+    el.style.opacity = "1";
+    el.style.transform = "none";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(8px)";
+    }, 2200);
+  }
+
+  function csrfToken() {
+    var input = document.querySelector("input[name=csrfmiddlewaretoken]");
+    return input ? input.value : "";
+  }
+
+  function postJSON(url, body) {
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
+      body: JSON.stringify(body || {}),
+      credentials: "same-origin",
+    }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+  window.govori.toast = toast;
+  window.govori.postJSON = postJSON;
+
+  // Save words for review
+  function setSaved(btn, saved) {
+    btn.setAttribute("aria-pressed", String(saved));
+    btn.querySelector("[data-on]").hidden = !saved;
+    btn.querySelector("[data-off]").hidden = saved;
+  }
+  document.querySelectorAll("[data-save-word]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      postJSON(btn.getAttribute("data-save-word"))
+        .then(function (res) {
+          setSaved(btn, res.saved);
+          toast(res.saved ? "Запазено за преговор" : "Премахнато от преговора", res.saved ? "fa-bookmark" : "fa-trash-can");
+        })
+        .catch(function () { toast("Нещо се обърка. Опитай пак.", "fa-triangle-exclamation"); });
+    });
+  });
+  var saveAll = document.querySelector("[data-save-all]");
+  if (saveAll) {
+    saveAll.addEventListener("click", function () {
+      postJSON(saveAll.getAttribute("data-save-all"))
+        .then(function (res) {
+          document.querySelectorAll("[data-save-word]").forEach(function (b) { setSaved(b, true); });
+          toast("Всички думи са в преговора (" + res.deck_size + " общо)", "fa-bookmark");
+        })
+        .catch(function () { toast("Нещо се обърка. Опитай пак.", "fa-triangle-exclamation"); });
+    });
+  }
+
   // Show / hide password
   document.querySelectorAll("[data-password-toggle]").forEach(function (btn) {
     var input = document.getElementById(btn.getAttribute("data-password-toggle"));

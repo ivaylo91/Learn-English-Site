@@ -83,7 +83,7 @@
 
     // Read the English prompt aloud (not for Bulgarian prompts or audio exercises).
     var canSpeak = !!(window.govori && window.govori.canSpeak);
-    el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || !!ex.audio;
+    el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || ex.type === "order" || !!ex.audio;
 
     if (ex.audio) {
       el.area.appendChild(audioBar(ex.audio, canSpeak));
@@ -115,6 +115,8 @@
         list.appendChild(b);
       });
       el.area.appendChild(list);
+    } else if (ex.type === "order") {
+      el.area.appendChild(orderBuilder(ex.words || []));
     } else {
       var long = ex.type === "translate" || ex.type === "dictation";
       var input = document.createElement(long ? "textarea" : "input");
@@ -140,6 +142,51 @@
       el.area.appendChild(input);
       setTimeout(function () { input.focus(); }, 50);
     }
+  }
+
+  // Word-order exercise: tap tiles to build the sentence, tap again to remove.
+  function orderBuilder(words) {
+    var wrap = document.createElement("div");
+    wrap.innerHTML =
+      '<div class="flex min-h-16 flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed border-stone-300 p-3 dark:border-stone-700" data-line aria-label="Твоето изречение"></div>' +
+      '<div class="mt-4 flex flex-wrap gap-2" data-bank aria-label="Думи"></div>';
+    var line = wrap.querySelector("[data-line]");
+    var bank = wrap.querySelector("[data-bank]");
+    var baseCls = "rounded-xl border-2 border-b-4 px-3.5 py-2 text-base font-bold transition-transform active:translate-y-0.5 ";
+    var tileCls = baseCls + "border-stone-200 bg-white disabled:opacity-30 dark:border-stone-700 dark:bg-stone-900";
+    var placedCls = baseCls + "border-brand-300 bg-brand-50 text-brand-900 dark:border-brand-500/40 dark:bg-brand-500/10 dark:text-brand-100";
+
+    function update() {
+      var picked = Array.prototype.map.call(line.children, function (t) { return t.textContent; });
+      setCurrent(picked.length === words.length ? picked.join(" ") : "");
+    }
+
+    words.forEach(function (word, i) {
+      var tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = tileCls;
+      tile.textContent = word;
+      tile.lang = "en";
+      tile.addEventListener("click", function () {
+        if (!el.next.hidden) return;
+        var placed = document.createElement("button");
+        placed.type = "button";
+        placed.className = placedCls;
+        placed.textContent = word;
+        placed.lang = "en";
+        placed.addEventListener("click", function () {
+          if (!el.next.hidden) return;
+          placed.remove();
+          tile.disabled = false;
+          update();
+        });
+        line.appendChild(placed);
+        tile.disabled = true;
+        update();
+      });
+      bank.appendChild(tile);
+    });
+    return wrap;
   }
 
   // Big play button plus a slow replay, for exercises with audio.
@@ -191,12 +238,16 @@
             if (String(o.dataset.choice) === String(res.correct_choice)) o.classList.add("is-correct");
             else if (o.dataset.choice === current) o.classList.add("is-wrong");
           });
+        } else if (ex.type === "order") {
+          var line = el.area.querySelector("[data-line]");
+          line.classList.remove("border-dashed");
+          line.classList.add(res.correct ? "!border-emerald-500" : "!border-red-500");
         } else {
           var input = el.area.querySelector(".field-input");
           input.readOnly = true;
           input.classList.add(res.correct ? "!border-emerald-600" : "!border-red-600");
         }
-        if (res.correct && window.govori && ex.type !== "translate" && !ex.audio) {
+        if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && !ex.audio) {
           // Speak the completed sentence for reinforcement.
           var answerText = ex.type === "choice"
             ? (ex.choices.find(function (c) { return String(c.id) === String(res.correct_choice); }) || {}).text

@@ -52,12 +52,13 @@ class LoginForm(StyledFormMixin, AuthenticationForm):
 class ProfileForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ["display_name", "goal", "level", "daily_goal_xp"]
+        fields = ["display_name", "goal", "level", "daily_goal_xp", "show_in_leaderboard"]
         labels = {
             "display_name": "Име",
             "goal": "Защо учиш английски?",
             "level": "Твоето ниво",
             "daily_goal_xp": "Дневна цел",
+            "show_in_leaderboard": "Показвай името ми в седмичната класация",
         }
         widgets = {
             "goal": forms.RadioSelect,

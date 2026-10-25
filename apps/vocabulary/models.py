@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import CEFRLevel
 from apps.core.theme import COLOR_CHOICES, theme
@@ -49,3 +52,51 @@ class Word(models.Model):
 
     def __str__(self):
         return self.english
+
+
+class SavedWord(models.Model):
+    """A word in the learner's review deck, scheduled with Leitner boxes."""
+
+    # Days until the next review for each box. A correct answer moves the word up one box.
+    INTERVALS = {1: 1, 2: 3, 3: 7, 4: 14, 5: 30}
+    MAX_BOX = 5
+
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="saved_words")
+    word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name="saved_by")
+    box = models.PositiveSmallIntegerField("кутия", default=1)
+    due_date = models.DateField("следващ преговор", default=timezone.localdate)
+    reviews = models.PositiveIntegerField("прегледи", default=0)
+    correct = models.PositiveIntegerField("верни", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [("user", "word")]
+        ordering = ["due_date", "box"]
+        verbose_name = "запазена дума"
+        verbose_name_plural = "запазени думи"
+
+    def __str__(self):
+        return f"{self.user} - {self.word}"
+
+    @property
+    def is_due(self):
+        return self.due_date <= timezone.localdate()
+
+    @property
+    def is_mastered(self):
+        return self.box >= self.MAX_BOX
+
+    def record(self, knew_it):
+        """Apply a review result and reschedule. Returns True if this review counted (the word was due)."""
+        was_due = self.is_due
+        self.reviews += 1
+        if knew_it:
+            self.correct += 1
+            if was_due:
+                self.box = min(self.box + 1, self.MAX_BOX)
+                self.due_date = timezone.localdate() + timedelta(days=self.INTERVALS[self.box])
+        else:
+            self.box = 1
+            self.due_date = timezone.localdate()
+        self.save()
+        return was_due

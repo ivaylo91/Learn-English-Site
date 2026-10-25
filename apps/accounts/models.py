@@ -60,6 +60,7 @@ class User(AbstractUser):
     last_activity_date = models.DateField("последна активност", null=True, blank=True)
     plan = models.CharField("план", max_length=10, choices=Plan.choices, default=Plan.FREE)
     premium_until = models.DateTimeField("премиум до", null=True, blank=True)
+    show_in_leaderboard = models.BooleanField("показвай ме в класацията", default=True, db_default=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

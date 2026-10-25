@@ -49,6 +49,20 @@ class PageSmokeTests(TestCase):
         self.assertEqual(self.client.session["placement_level"], "C2")
         self.assertContains(self.client.get(reverse("placement:result")), "C2")
 
+    def test_seo_endpoints(self):
+        self.assertContains(self.client.get("/robots.txt"), "Sitemap: http://testserver/sitemap.xml")
+        response = self.client.get("/sitemap.xml")
+        self.assertContains(response, "/courses/lesson/a1-greetings/")
+        self.assertEqual(self.client.get("/does-not-exist/").status_code, 404)
+
+    def test_seed_keeps_saved_words(self):
+        from apps.vocabulary.models import SavedWord, Word
+
+        user = User.objects.create_user("keep@example.com", "pass")
+        SavedWord.objects.create(user=user, word=Word.objects.first())
+        call_command("seed_content", stdout=StringIO())
+        self.assertEqual(SavedWord.objects.filter(user=user).count(), 1)
+
     def test_seed_is_idempotent(self):
         before = (Lesson.objects.count(), Topic.objects.count(), PlacementQuestion.objects.count())
         call_command("seed_content", stdout=StringIO())

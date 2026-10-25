@@ -66,6 +66,8 @@ def serialize_exercise(exercise):
     }
     if exercise.type == Exercise.Type.CHOICE:
         data["choices"] = [{"id": c.id, "text": c.text} for c in exercise.choices.all()]
+    elif exercise.type == Exercise.Type.ORDER:
+        data["words"] = exercise.word_tiles()
     return data
 
 

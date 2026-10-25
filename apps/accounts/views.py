@@ -3,10 +3,12 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
 from apps.courses.models import Lesson, LessonProgress, Level
-from apps.vocabulary.models import Topic
+from apps.vocabulary.models import SavedWord, Topic
 
+from .achievements import achievements_for, week_start, weekly_leaderboard
 from .forms import ProfileForm, SignupForm
 
 
@@ -66,8 +68,20 @@ def dashboard(request):
         "completed_count": len(completed_ids),
         "recent": recent,
         "travel_topics": Topic.objects.filter(is_travel=True)[:4],
+        "due_words": SavedWord.objects.filter(user=user, due_date__lte=timezone.localdate()).count(),
+        "deck_size": SavedWord.objects.filter(user=user).count(),
+        "achievements": achievements_for(user),
     }
+    context["earned_count"] = sum(1 for a in context["achievements"] if a["earned"])
     return render(request, "accounts/dashboard.html", context)
+
+
+def leaderboard(request):
+    leaders = list(weekly_leaderboard())
+    my_rank = None
+    if request.user.is_authenticated:
+        my_rank = next((i for i, u in enumerate(leaders, start=1) if u.pk == request.user.pk), None)
+    return render(request, "accounts/leaderboard.html", {"leaders": leaders, "week_start": week_start(), "my_rank": my_rank})
 
 
 @login_required

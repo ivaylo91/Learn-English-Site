@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Седмична класация | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<section class="relative overflow-hidden">
+  <div class="blob -top-24 left-1/3 size-96 bg-amber-200/50 dark:bg-amber-500/10"></div>
+  <div class="container-page relative max-w-2xl py-12 text-center md:py-16">
+    <span class="mx-auto grid size-16 place-items-center rounded-2xl bg-amber-400 text-3xl text-amber-950 shadow-[0_4px_0_0_var(--color-amber-600)]"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+    <h1 class="mt-6 text-3xl font-black tracking-tight md:text-5xl">Седмична класация</h1>
+    <p class="mt-3 font-semibold text-stone-600 dark:text-stone-400">Точки опит от понеделник, {{ week_start|date:"j F" }}. Класацията се нулира всяка седмица.</p>
+    {% if my_rank %}
+      <p class="mt-4"><span class="badge badge-brand text-sm"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Ти си №{{ my_rank }}</span></p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="container-page max-w-2xl">
+  {% if leaders %}
+    <ol class="card divide-y divide-stone-200 dark:divide-stone-800">
+      {% for u in leaders %}
+        <li class="flex items-center gap-4 px-4 py-3.5 sm:px-6 {% if u.pk == user.pk %}bg-brand-50 dark:bg-brand-500/10{% endif %}">
+          <span class="grid size-10 shrink-0 place-items-center rounded-xl text-sm font-black
+            {% if forloop.counter == 1 %}bg-amber-400 text-amber-950{% elif forloop.counter == 2 %}bg-stone-300 text-stone-800 dark:bg-stone-600 dark:text-stone-100{% elif forloop.counter == 3 %}bg-orange-300 text-orange-950{% else %}bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300{% endif %}">
+            {% if forloop.counter <= 3 %}<i class="fa-solid fa-medal" aria-hidden="true"></i><span class="sr-only">{{ forloop.counter }}</span>{% else %}{{ forloop.counter }}{% endif %}
+          </span>
+          <span class="grid size-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-400 to-sky-500 font-black text-white">{{ u.name|first|upper }}</span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate font-extrabold">{{ u.name }}{% if u.pk == user.pk %} (ти){% endif %}</span>
+            {% if u.level %}<span class="text-xs font-bold text-stone-500 dark:text-stone-400">{{ u.level }}</span>{% endif %}
+          </span>
+          <span class="font-black text-amber-600 tabular-nums dark:text-amber-400"><i class="fa-solid fa-bolt mr-1" aria-hidden="true"></i>{{ u.week_xp }} XP</span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <div class="card p-10 text-center">
+      <p class="text-lg font-black">Тази седмица още няма точки.</p>
+      <p class="mt-2 font-semibold text-stone-600 dark:text-stone-400">Завърши урок и бъди първи!</p>
+      <a href="{% url 'courses:levels' %}" class="btn btn-primary mt-6">Към курса</a>
+    </div>
+  {% endif %}
+  <p class="mt-6 text-center text-sm font-semibold text-stone-500 dark:text-stone-400">
+    Не искаш да се показваш? Изключи го от <a href="{% url 'accounts:profile' %}" class="underline">настройките</a>.
+  </p>
+</div>
+{% endblock %}

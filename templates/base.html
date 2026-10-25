@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SITE_NAME }}: английски на български{% endblock %}</title>
   <meta name="description" content="{% block description %}Безплатен курс по английски език на български. От A1 до C2, с уроци, упражнения, речник и фрази за пътуване.{% endblock %}">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:locale" content="bg_BG">
+  <meta property="og:title" content="{% block og_title %}{{ SITE_NAME }}: английски на български{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Безплатен курс по английски език на български. От A1 до C2, с уроци, слушане, речник и фрази за пътуване.{% endblock %}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)">
   <script>

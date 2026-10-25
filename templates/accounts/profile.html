@@ -32,6 +32,12 @@
     </div>
     <p class="field-help -mt-4">Не знаеш нивото си? Избери „Не знам“ и ще те пратим към теста.</p>
 
+    <label class="flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-stone-200 bg-white px-4 py-3.5 font-bold dark:border-stone-700 dark:bg-stone-900">
+      <input type="checkbox" name="{{ form.show_in_leaderboard.html_name }}" class="size-5 accent-brand-600" {% if form.show_in_leaderboard.value %}checked{% endif %}>
+      <span class="flex-1">{{ form.show_in_leaderboard.label }}</span>
+      <i class="fa-solid fa-trophy text-amber-500" aria-hidden="true"></i>
+    </label>
+
     <div class="flex flex-wrap gap-3">
       <button class="btn btn-primary">Запази</button>
       <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Към таблото</a>

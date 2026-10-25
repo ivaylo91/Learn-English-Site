@@ -1,3 +1,4 @@
+import random
 import re
 import unicodedata
 
@@ -130,6 +131,7 @@ class Exercise(models.Model):
         FILL = "fill", "Попълни празното"
         TRANSLATE = "translate", "Преведи"
         DICTATION = "dictation", "Диктовка"
+        ORDER = "order", "Подреди думите"
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="exercises", verbose_name="урок")
     type = models.CharField("тип", max_length=10, choices=Type.choices, default=Type.CHOICE)
@@ -161,6 +163,19 @@ class Exercise(models.Model):
         if not answers and self.type == self.Type.DICTATION and self.audio_text:
             answers = [self.audio_text]
         return answers
+
+    def word_tiles(self):
+        """Shuffled words of the first correct answer, for word-order exercises."""
+        answers = self.accepted_answers()
+        if not answers:
+            return []
+        words = answers[0].split()
+        rng = random.Random(self.pk)
+        for _ in range(5):
+            rng.shuffle(words)
+            if words != answers[0].split() or len(words) < 2:
+                break
+        return words
 
     def is_correct_answer(self, value):
         """Return True when value is a correct answer. Choices are checked by id."""

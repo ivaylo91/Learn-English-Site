@@ -79,11 +79,15 @@ class Command(BaseCommand):
                           "is_travel": t.get("is_travel", False), "order": t["order"], "summary": t.get("summary", ""),
                           "color": TOPIC_COLORS.get(t["slug"], "teal")},
             )
-            topic.words.all().delete()
-            Word.objects.bulk_create(
-                Word(topic=topic, english=en, bulgarian=bg, transcription=ipa, example_en=ex_en, example_bg=ex_bg, order=i)
-                for i, (en, bg, ipa, ex_en, ex_bg) in enumerate(t["words"], start=1)
-            )
+            # Update words in place (matched by English text) so learners' saved words survive a reseed.
+            keep = []
+            for i, (en, bg, ipa, ex_en, ex_bg) in enumerate(t["words"], start=1):
+                word, _ = Word.objects.update_or_create(
+                    topic=topic, english=en,
+                    defaults={"bulgarian": bg, "transcription": ipa, "example_en": ex_en, "example_bg": ex_bg, "order": i},
+                )
+                keep.append(word.pk)
+            topic.words.exclude(pk__in=keep).delete()
             word_count += len(t["words"])
         self.stdout.write(f"  {len(vocabulary.TOPICS)} topics, {word_count} words")
 

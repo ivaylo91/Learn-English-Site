@@ -71,3 +71,28 @@ class AuthFlowTests(TestCase):
         response = self.client.get(reverse("accounts:dashboard"))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("accounts:login"), response["Location"])
+
+
+class AchievementLeaderboardTests(TestCase):
+    def test_achievements_follow_stats(self):
+        from .achievements import achievements_for
+
+        user = User.objects.create_user("x@example.com", "pass")
+        earned = {a["key"] for a in achievements_for(user) if a["earned"]}
+        self.assertEqual(earned, set())
+        user.add_xp(150)
+        earned = {a["key"] for a in achievements_for(user) if a["earned"]}
+        self.assertEqual(earned, {"xp-100"})
+
+    def test_leaderboard_counts_this_week_and_respects_opt_out(self):
+        a = User.objects.create_user("a@example.com", "pass", display_name="Ана")
+        b = User.objects.create_user("b@example.com", "pass", display_name="Боби", show_in_leaderboard=False)
+        c = User.objects.create_user("c@example.com", "pass", display_name="Цвети")
+        a.add_xp(10)
+        b.add_xp(50)
+        c.add_xp(20)
+        # Points from last month don't count.
+        a.xp_events.update(created_at=timezone.now() - timedelta(days=40))
+        response = self.client.get(reverse("core:leaderboard"))
+        self.assertEqual([u.display_name for u in response.context["leaders"]], ["Цвети"])
+        self.assertNotContains(response, "Боби")

@@ -15,6 +15,11 @@ def T(prompt, answers, explanation="", instruction="Преведи на англ
             "explanation": explanation}
 
 
+def O(prompt, answer, explanation="", instruction="Подреди думите"):
+    """Word order: prompt is the Bulgarian meaning, answer the English sentence (no punctuation)."""
+    return {"type": "order", "instruction": instruction, "prompt": prompt, "answers": answer, "explanation": explanation}
+
+
 def L(prompt, audio, choices, correct, explanation="", instruction="Слушай и избери"):
     """Listening choice: the learner hears `audio`, then answers `prompt`."""
     return {**C(prompt, choices, correct, explanation, instruction), "audio": audio}
@@ -127,6 +132,7 @@ UNITS = [
                     T("Аз съм от България.", "I am from Bulgaria|I'm from Bulgaria"),
                     T("Тя е лекар.", "She is a doctor|She's a doctor",
                       "Пред професия в единствено число слагаме a или an."),
+                    O("Те не са у дома.", "They are not at home|They aren't at home"),
                 ],
             },
             {
@@ -248,6 +254,8 @@ UNITS = [
                     C("Does your sister ___ meat?", ["eat", "eats", "eating"], 0, "След does глаголът е в основна форма."),
                     F("We never ___ (watch) TV in the morning.", "watch"),
                     T("Той не пие кафе.", "He doesn't drink coffee|He does not drink coffee"),
+                    O("Обикновено пия чай сутрин.", "I usually drink tea in the morning",
+                      "Думите за честота стоят пред глагола."),
                 ],
             },
         ],
@@ -303,6 +311,7 @@ UNITS = [
                     C("Кое е правилно?", ["Did you called him?", "Did you call him?", "Do you called him?"], 1),
                     C("He ___ like the food.", ["didn't", "doesn't liked", "not"], 0),
                     T("Посетихме Лондон миналата година.", "We visited London last year|Last year we visited London"),
+                    O("Гледа ли мача снощи?", "Did you watch the match last night"),
                 ],
             },
             {
@@ -434,6 +443,7 @@ UNITS = [
                     C("She ___ her homework. Now she can relax.", ["has finished", "finished yesterday", "have finished"], 0),
                     C("I ___ to Rome in 2018.", ["have been", "went", "have gone"], 1, "Има конкретно минало време (2018), затова Past Simple."),
                     F("I've lived here ___ 2015.", "since", "Since + начална точка, for + период."),
+                    O("Били ли сте някога в Япония?", "Have you ever been to Japan"),
                     F("We've known each other ___ ten years.", "for"),
                     C("Кое изречение е грешно?", ["I've seen that film.", "I've seen that film yesterday.", "I saw that film yesterday."], 1),
                     T("Той никога не е бил в Америка.", "He has never been to America|He's never been to America|He has never been to the USA|He's never been to the USA|He has never been to the US|He's never been to the US",

@@ -1,6 +1,6 @@
 """B1 to C2 (Proficiency) grammar and vocabulary lessons."""
 
-from .courses import C, F, T
+from .courses import C, F, O, T
 
 UNITS = [
     # ---------------- B1 ----------------
@@ -116,6 +116,7 @@ UNITS = [
                     C("The bridge ___ for two years now.", ["has been repaired", "is repaired", "was repaired"], 0,
                       "For two years now: Present Perfect."),
                     T("Писмото беше изпратено вчера.", "The letter was sent yesterday|Yesterday the letter was sent"),
+                    O("Тази къща е построена през 1920 г.", "This house was built in 1920"),
                 ],
             },
             {
@@ -205,6 +206,7 @@ UNITS = [
                     C("Under no circumstances ___ leave the building.", ["you should", "should you", "you must"], 1),
                     F("Rarely ___ (do) she complain about anything.", "does"),
                     C("Hardly had I closed my eyes ___ the alarm went off.", ["than", "when", "then"], 1, "Hardly ... when, No sooner ... than."),
+                    O("Никога не сме виждали толкова красива гледка.", "Never have we seen such a beautiful view"),
                 ],
             },
             {

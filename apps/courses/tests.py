@@ -142,3 +142,24 @@ class AudioLessonTests(TestCase):
         Lesson.objects.create(unit=self.lesson.unit, title="Grammar", slug="grammar")
         response = self.client.get(reverse("courses:listening"))
         self.assertEqual([l.slug for l in response.context["lessons"]], ["cafe"])
+
+
+class WordOrderTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        level = Level.objects.create(code="A1", title="Начинаещи", summary="s", order=1)
+        unit = Unit.objects.create(level=level, title="U", slug="u", order=1)
+        lesson = Lesson.objects.create(unit=unit, title="Order", slug="order")
+        cls.exercise = Exercise.objects.create(
+            lesson=lesson, type="order", prompt="Те не са у дома.", answers="They are not at home|They aren't at home"
+        )
+
+    def test_tiles_are_the_answer_words_shuffled(self):
+        tiles = self.exercise.word_tiles()
+        self.assertEqual(sorted(tiles), sorted("They are not at home".split()))
+        self.assertNotEqual(tiles, "They are not at home".split())
+        self.assertEqual(tiles, self.exercise.word_tiles())  # stable between requests
+
+    def test_grading(self):
+        self.assertTrue(self.exercise.is_correct_answer("They are not at home"))
+        self.assertFalse(self.exercise.is_correct_answer("Are they not at home"))

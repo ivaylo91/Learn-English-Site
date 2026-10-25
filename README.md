@@ -57,6 +57,14 @@ With `DATABASE_URL` empty the site uses local SQLite.
 - **Dialogue**: one line per reply, `Speaker | English | Bulgarian`. The page plays it with two voices, at normal or slow speed, with the transcript and translation hidden until the learner opens them.
 - **Audio file** (optional): upload an MP3 to use a real recording instead of the browser voice. Files go to `media/` locally; move them to Supabase Storage before production.
 
+### Word review (spaced repetition)
+
+Learners save words from any topic (bookmark icon) into "Моите думи". `/vocabulary/review/` shows due cards; a remembered word moves up a Leitner box (1, 3, 7, 14, 30 days), a forgotten one goes back to box 1. Only due words give XP. `seed_content` updates words in place, so saved words survive a reseed.
+
+### Exercise type: word order
+
+`order`: the prompt is the Bulgarian sentence, the first accepted answer is the English sentence without punctuation. The learner taps shuffled word tiles to build it.
+
 ### Colors
 
 Level, lesson-kind and topic colors live in `apps/core/theme.py`. Topics have a `color` field in the admin.
