@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python manage.py tailwind build",
+  "functions": {
+    "config/wsgi.py": {
+      "maxDuration": 30,
+      "excludeFiles": "{.django_tailwind_cli/**,frontend/**,docs/**,media/**,**/tests.py}"
+    }
+  }
+}

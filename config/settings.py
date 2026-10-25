@@ -1,6 +1,7 @@
 """Django settings for the Learn English site."""
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -14,10 +15,28 @@ def env_bool(name, default=False):
     return os.getenv(name, str(default)).lower() in ("1", "true", "yes", "on")
 
 
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-only-change-me")
-DEBUG = env_bool("DEBUG", True)
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+def env_list(name, default=""):
+    return [v.strip() for v in os.getenv(name, default).split(",") if v.strip()]
+
+
+# Vercel sets VERCEL=1 in builds and functions; production defaults follow from it.
+ON_VERCEL = env_bool("VERCEL")
+
+DEBUG = env_bool("DEBUG", not ON_VERCEL)
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise RuntimeError("SECRET_KEY must be set when DEBUG is off.")
+    SECRET_KEY = "django-insecure-dev-only-change-me"
+
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
+CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+if ON_VERCEL:
+    # Preview and production deployment hostnames.
+    ALLOWED_HOSTS.append(".vercel.app")
+    for var in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+        if host := os.getenv(var):
+            CSRF_TRUSTED_ORIGINS.append(f"https://{host}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -67,17 +86,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database: Supabase Postgres via DATABASE_URL (Session pooler URI), SQLite fallback for local dev.
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+# Database: Supabase Postgres via DATABASE_URL, SQLite fallback for local dev.
+# Local/long-running servers use the Session pooler (port 5432). Serverless (Vercel) uses the
+# Transaction pooler (port 6543): no persistent connections and no server-side cursors.
+# Tests always run on local SQLite: the app role cannot create databases on Supabase.
+RUNNING_TESTS = sys.argv[1:2] == ["test"]
+DATABASE_URL = "" if RUNNING_TESTS else os.getenv("DATABASE_URL", "").strip()
+DB_TRANSACTION_POOLER = ":6543/" in DATABASE_URL
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=int(os.getenv("DB_CONN_MAX_AGE", "60")),
-            conn_health_checks=True,
+            conn_max_age=0 if DB_TRANSACTION_POOLER else int(os.getenv("DB_CONN_MAX_AGE", "60")),
+            conn_health_checks=not DB_TRANSACTION_POOLER,
             ssl_require=env_bool("DB_SSL_REQUIRE", True),
         )
     }
+    if DB_TRANSACTION_POOLER:
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     DATABASES = {
         "default": {
