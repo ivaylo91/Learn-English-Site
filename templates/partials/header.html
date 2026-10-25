@@ -1,0 +1,76 @@
+{% with path=request.path %}
+<header class="sticky top-0 z-30 border-b border-stone-200/80 bg-stone-50/85 backdrop-blur-md dark:border-stone-800/80 dark:bg-stone-950/85">
+  <div class="container-page flex h-16 items-center gap-4">
+    <a href="{% url 'core:home' %}{% if user.is_authenticated %}?landing{% endif %}" class="flex items-center gap-2.5 font-bold tracking-tight">
+      <span class="grid size-9 place-items-center rounded-xl bg-brand-700 text-white dark:bg-brand-500 dark:text-stone-950">
+        <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+      </span>
+      <span class="text-lg">{{ SITE_NAME }}</span>
+    </a>
+
+    <nav class="ml-4 hidden items-center gap-1 md:flex" aria-label="Основна навигация">
+      <a href="{% url 'courses:levels' %}" class="nav-link {% if '/courses/' in path %}is-active{% endif %}">Курс</a>
+      <a href="{% url 'vocabulary:topics' %}" class="nav-link {% if path == '/vocabulary/' %}is-active{% endif %}">Речник</a>
+      <a href="{% url 'vocabulary:travel' %}" class="nav-link {% if '/travel/' in path %}is-active{% endif %}">За пътуване</a>
+      <a href="{% url 'placement:test' %}" class="nav-link {% if '/placement-test/' in path %}is-active{% endif %}">Тест за ниво</a>
+    </nav>
+
+    <div class="ml-auto flex items-center gap-2">
+      <button type="button" class="btn btn-ghost btn-sm size-10 !px-0" data-theme-toggle aria-label="Смени светла/тъмна тема">
+        {# Spans carry the visibility: Font Awesome's unlayered display rule beats Tailwind's layered "hidden" on <i>. #}
+        <span class="dark:hidden"><i class="fa-solid fa-moon" aria-hidden="true"></i></span>
+        <span class="hidden dark:inline"><i class="fa-solid fa-sun" aria-hidden="true"></i></span>
+      </button>
+
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:dashboard' %}" class="hidden items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-stone-200/60 sm:flex dark:hover:bg-stone-800" title="Твоят прогрес">
+          <span class="flex items-center gap-1.5 {% if user.streak_is_active %}text-orange-600 dark:text-orange-400{% else %}text-stone-500{% endif %}">
+            <i class="fa-solid fa-fire" aria-hidden="true"></i>{{ user.current_streak }}
+            <span class="sr-only">поредни дни</span>
+          </span>
+          <span class="flex items-center gap-1.5 text-brand-700 dark:text-brand-300">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>{{ user.xp }}
+            <span class="sr-only">XP</span>
+          </span>
+        </a>
+        <details class="relative" data-dropdown>
+          <summary class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full bg-stone-200 font-semibold text-stone-800 dark:bg-stone-800 dark:text-stone-100" aria-label="Меню на профила">
+            {{ user.name|first|upper }}
+          </summary>
+          <div class="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-stone-200 bg-white p-1.5 shadow-lg shadow-stone-900/5 dark:border-stone-800 dark:bg-stone-900">
+            <p class="truncate px-3 py-2 text-xs text-stone-500 dark:text-stone-400">{{ user.email }}</p>
+            <a href="{% url 'accounts:dashboard' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-house w-4 text-stone-500" aria-hidden="true"></i>Моето табло</a>
+            <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-sliders w-4 text-stone-500" aria-hidden="true"></i>Настройки</a>
+            {% if user.is_staff %}
+              <a href="{% url 'admin:index' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-screwdriver-wrench w-4 text-stone-500" aria-hidden="true"></i>Администрация</a>
+            {% endif %}
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-arrow-right-from-bracket w-4 text-stone-500" aria-hidden="true"></i>Изход</button>
+            </form>
+          </div>
+        </details>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm hidden sm:inline-flex">Вход</a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-sm">Започни безплатно</a>
+      {% endif %}
+
+      <button type="button" class="btn btn-ghost btn-sm size-10 !px-0 md:hidden" data-menu-toggle aria-expanded="false" aria-controls="mobile-menu" aria-label="Меню">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" class="hidden border-t border-stone-200 md:hidden dark:border-stone-800" aria-label="Мобилна навигация">
+    <div class="container-page grid gap-1 py-3">
+      <a href="{% url 'courses:levels' %}" class="nav-link"><i class="fa-solid fa-graduation-cap mr-2 w-4" aria-hidden="true"></i>Курс</a>
+      <a href="{% url 'vocabulary:topics' %}" class="nav-link"><i class="fa-solid fa-book mr-2 w-4" aria-hidden="true"></i>Речник</a>
+      <a href="{% url 'vocabulary:travel' %}" class="nav-link"><i class="fa-solid fa-plane mr-2 w-4" aria-hidden="true"></i>За пътуване</a>
+      <a href="{% url 'placement:test' %}" class="nav-link"><i class="fa-solid fa-list-check mr-2 w-4" aria-hidden="true"></i>Тест за ниво</a>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:login' %}" class="nav-link"><i class="fa-solid fa-right-to-bracket mr-2 w-4" aria-hidden="true"></i>Вход</a>
+      {% endif %}
+    </div>
+  </nav>
+</header>
+{% endwith %}

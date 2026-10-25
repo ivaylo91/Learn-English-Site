@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ lesson.title }} ({{ lesson.unit.level.code }}) | {{ SITE_NAME }}{% endblock %}
+{% block description %}{{ lesson.summary|default:lesson.title }}{% endblock %}
+{% block content %}
+<div class="container-page max-w-3xl py-10 md:py-14">
+  <nav aria-label="Навигация" class="flex flex-wrap items-center gap-x-2 text-sm text-stone-500 dark:text-stone-400">
+    <a href="{% url 'courses:levels' %}" class="hover:underline">Курс</a>
+    <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+    <a href="{{ lesson.unit.level.get_absolute_url }}" class="hover:underline">{{ lesson.unit.level.code }}</a>
+    <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+    <span>{{ lesson.unit.title }}</span>
+  </nav>
+
+  <header class="mt-6">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="badge badge-brand">{{ lesson.get_kind_display }}</span>
+      <span class="badge badge-muted">Урок {{ position }} от {{ unit_size }}</span>
+      {% if progress.is_completed %}<span class="badge bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Завършен, {{ progress.best_score }}%</span>{% endif %}
+    </div>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight md:text-4xl">{{ lesson.title }}</h1>
+    {% if lesson.title_en %}<p class="mt-1 text-lg text-stone-500 dark:text-stone-400">{{ lesson.title_en }}</p>{% endif %}
+  </header>
+
+  {% if lesson.theory %}
+    <article class="prose-lesson mt-8" data-lesson-theory>
+      {{ lesson.theory|safe }}
+    </article>
+  {% endif %}
+
+  {% if exercise_count %}
+    <section class="card mt-12 p-5 sm:p-8" data-lesson-player
+             data-check-url="{% url 'courses:check' lesson.slug %}"
+             data-complete-url="{% url 'courses:complete' lesson.slug %}"
+             data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
+             aria-live="polite">
+      {% csrf_token %}
+
+      {# Start screen #}
+      <div data-screen="start" class="text-center">
+        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-100 text-2xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>
+        <h2 class="mt-4 text-2xl font-bold">Упражнения</h2>
+        <p class="mt-2 text-stone-600 dark:text-stone-400">{{ exercise_count }} задачи, около {{ lesson.minutes }} минути. Нужни са ти поне 60% верни отговора.</p>
+        <button type="button" class="btn btn-primary mt-6 text-base" data-action="start">Започни упражненията<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </div>
+
+      {# Exercise screen #}
+      <div data-screen="exercise" hidden>
+        <div class="flex items-center gap-4">
+          <div class="h-2.5 flex-1 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+            <div class="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out-soft dark:bg-brand-400" style="width: 0%" data-progress></div>
+          </div>
+          <span class="text-sm font-medium text-stone-500 tabular-nums dark:text-stone-400" data-counter></span>
+        </div>
+        <p class="mt-8 text-sm font-medium text-stone-600 dark:text-stone-400" data-instruction></p>
+        <div class="mt-2 flex items-start gap-3">
+          <p class="flex-1 text-2xl leading-snug font-semibold" data-prompt></p>
+          <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700" data-action="speak-prompt" aria-label="Чуй изречението" hidden>
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="mt-6" data-answer-area></div>
+        <div class="mt-5 hidden rounded-xl px-4 py-3" data-feedback></div>
+        <div class="mt-6 flex justify-end">
+          <button type="button" class="btn btn-primary min-w-36 text-base" data-action="check" disabled>Провери</button>
+          <button type="button" class="btn btn-primary min-w-36 text-base" data-action="next" hidden>Напред<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      {# Result screen #}
+      <div data-screen="result" class="text-center" hidden>
+        <span class="mx-auto grid size-16 place-items-center rounded-2xl text-3xl" data-result-icon></span>
+        <h2 class="mt-4 text-2xl font-bold" data-result-title></h2>
+        <p class="mt-2 text-4xl font-extrabold tabular-nums" data-result-score></p>
+        <p class="mt-2 text-stone-600 dark:text-stone-400" data-result-text></p>
+        <div class="mt-5 flex flex-wrap justify-center gap-3 text-sm font-semibold" data-result-stats></div>
+        {% if not user.is_authenticated %}
+          <div class="mx-auto mt-6 max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-950 dark:bg-brand-950/60 dark:text-brand-100">
+            <a href="{% url 'accounts:signup' %}" class="font-semibold underline">Създай безплатен профил</a>, за да пазиш прогреса и точките си.
+          </div>
+        {% endif %}
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <button type="button" class="btn btn-secondary" data-action="restart"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Опитай пак</button>
+          {% if next_lesson %}
+            <a href="{{ next_lesson.get_absolute_url }}" class="btn btn-primary" data-next-lesson>Следващ урок<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          {% else %}
+            <a href="{{ lesson.unit.level.get_absolute_url }}" class="btn btn-primary">Към {{ lesson.unit.level.code }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    {{ exercises_json|json_script:"exercises-data" }}
+  {% elif next_lesson %}
+    <div class="mt-12 flex justify-end">
+      <a href="{{ next_lesson.get_absolute_url }}" class="btn btn-primary">Следващ урок<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'js/lesson.js' %}" defer></script>{% endblock %}

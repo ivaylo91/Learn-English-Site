@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Английски за пътуване: фрази | {{ SITE_NAME }}{% endblock %}
+{% block description %}Английски фрази за летището, хотела, ресторанта и града. С превод на български и произношение.{% endblock %}
+{% block content %}
+<section class="container-page grid items-center gap-10 py-12 md:grid-cols-[1.2fr_1fr] md:py-16">
+  <div>
+    <h1 class="text-3xl font-bold tracking-tight md:text-5xl">Английски за пътуване</h1>
+    <p class="mt-4 max-w-[52ch] text-lg text-stone-600 dark:text-stone-400">Фразите, които ще ти трябват от летището до ресторанта. Чуй ги, упражни ги с карти и тръгни спокойно.</p>
+  </div>
+  <img src="https://picsum.photos/seed/govori-airport-gate/900/600" alt="Пътник с куфар на летище" class="aspect-[3/2] w-full rounded-3xl object-cover" width="900" height="600">
+</section>
+<div class="container-page">
+  {% include "vocabulary/_topic_grid.html" %}
+</div>
+{% endblock %}

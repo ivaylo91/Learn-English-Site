@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@source "../templates";
+@source "../apps";
+@source "../assets/js";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Onest", ui-sans-serif, system-ui, sans-serif;
+
+  /* One accent (teal). Swap these to rebrand. */
+  --color-brand-50: oklch(0.984 0.014 180.72);
+  --color-brand-100: oklch(0.953 0.051 180.801);
+  --color-brand-200: oklch(0.91 0.096 180.426);
+  --color-brand-300: oklch(0.855 0.138 181.071);
+  --color-brand-400: oklch(0.777 0.152 181.912);
+  --color-brand-500: oklch(0.704 0.14 182.503);
+  --color-brand-600: oklch(0.6 0.118 184.704);
+  --color-brand-700: oklch(0.511 0.096 186.391);
+  --color-brand-800: oklch(0.437 0.078 188.216);
+  --color-brand-900: oklch(0.386 0.063 188.416);
+  --color-brand-950: oklch(0.277 0.046 192.524);
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-stone-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600 dark:outline-brand-400;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold whitespace-nowrap
+      transition-[transform,background-color,border-color,color] duration-200 ease-out-soft
+      active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand-700 text-white hover:bg-brand-800 dark:bg-brand-500 dark:text-stone-950 dark:hover:bg-brand-400;
+  }
+  .btn-secondary {
+    @apply border border-stone-300 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-100
+      dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800;
+  }
+  .btn-ghost {
+    @apply text-stone-700 hover:bg-stone-200/60 dark:text-stone-300 dark:hover:bg-stone-800;
+  }
+  .btn-sm {
+    @apply px-3.5 py-2 text-sm;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-stone-800 dark:text-stone-200;
+  }
+  .field-input {
+    @apply block w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900
+      placeholder:text-stone-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/25 focus:outline-none
+      dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-400
+      dark:focus:border-brand-400 dark:focus:ring-brand-400/25;
+  }
+  .field-help {
+    @apply mt-1.5 text-sm text-stone-600 dark:text-stone-400;
+  }
+  .field-error {
+    @apply mt-1.5 text-sm font-medium text-red-700 dark:text-red-400;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+  .badge-brand {
+    @apply bg-brand-100 text-brand-900 dark:bg-brand-950 dark:text-brand-200;
+  }
+  .badge-muted {
+    @apply bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300;
+  }
+
+  .nav-link {
+    @apply rounded-lg px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-200/60 hover:text-stone-950
+      dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-white;
+  }
+  .nav-link.is-active {
+    @apply bg-stone-200/70 text-stone-950 dark:bg-stone-800 dark:text-white;
+  }
+
+  .prose-lesson {
+    @apply max-w-[68ch] text-base leading-relaxed text-stone-700 dark:text-stone-300;
+  }
+  .prose-lesson h3 {
+    @apply mt-8 mb-3 text-lg font-semibold text-stone-900 dark:text-white;
+  }
+  .prose-lesson p {
+    @apply my-3;
+  }
+  .prose-lesson ul {
+    @apply my-3 list-disc space-y-1.5 pl-5;
+  }
+  .prose-lesson strong {
+    @apply font-semibold text-stone-900 dark:text-white;
+  }
+  .prose-lesson .en {
+    @apply font-semibold text-brand-800 dark:text-brand-300;
+  }
+  .prose-lesson table {
+    @apply my-4 w-full overflow-hidden rounded-xl border border-stone-200 text-sm dark:border-stone-800;
+  }
+  .prose-lesson th {
+    @apply bg-stone-100 px-3 py-2 text-left font-semibold text-stone-900 dark:bg-stone-800 dark:text-white;
+  }
+  .prose-lesson td {
+    @apply border-t border-stone-200 px-3 py-2 dark:border-stone-800;
+  }
+  .prose-lesson .tip {
+    @apply my-5 rounded-xl border-l-4 border-brand-600 bg-brand-50 px-4 py-3 text-stone-800 dark:border-brand-400 dark:bg-brand-950/60 dark:text-stone-200;
+  }
+
+  /* Exercise option buttons */
+  .option {
+    @apply flex w-full items-center gap-3 rounded-xl border-2 border-stone-200 bg-white px-4 py-3.5 text-left text-base font-medium
+      transition-[border-color,background-color,transform] duration-150 hover:border-stone-400 active:scale-[0.99]
+      dark:border-stone-700 dark:bg-stone-900 dark:hover:border-stone-500;
+  }
+  .option.is-selected {
+    @apply border-brand-600 bg-brand-50 dark:border-brand-400 dark:bg-brand-950/60;
+  }
+  .option.is-correct {
+    @apply border-emerald-600 bg-emerald-50 text-emerald-950 dark:border-emerald-400 dark:bg-emerald-950/50 dark:text-emerald-100;
+  }
+  .option.is-wrong {
+    @apply border-red-600 bg-red-50 text-red-950 dark:border-red-400 dark:bg-red-950/50 dark:text-red-100;
+  }
+
+  /* Flashcards */
+  .flashcard {
+    perspective: 1200px;
+  }
+  .flashcard-inner {
+    @apply relative h-full w-full transition-transform duration-500 ease-out-soft;
+    transform-style: preserve-3d;
+  }
+  .flashcard.is-flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  .flashcard-face {
+    @apply absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-6 text-center;
+    backface-visibility: hidden;
+  }
+  .flashcard-back {
+    transform: rotateY(180deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal-up 0.6s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-inner {
+    transition: none;
+  }
+}

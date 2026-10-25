@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ topic.title }}: английски думи и фрази | {{ SITE_NAME }}{% endblock %}
+{% block description %}{{ topic.summary|default:topic.title }}{% endblock %}
+{% block content %}
+<div class="container-page max-w-4xl py-10 md:py-14">
+  <nav aria-label="Навигация" class="text-sm text-stone-500 dark:text-stone-400">
+    {% if topic.is_travel %}<a href="{% url 'vocabulary:travel' %}" class="hover:underline">За пътуване</a>{% else %}<a href="{% url 'vocabulary:topics' %}" class="hover:underline">Речник</a>{% endif %}
+    <i class="fa-solid fa-chevron-right mx-2 text-xs" aria-hidden="true"></i>
+    <span class="text-stone-800 dark:text-stone-200">{{ topic.title }}</span>
+  </nav>
+
+  <header class="mt-6 flex flex-wrap items-center gap-5">
+    <span class="grid size-16 place-items-center rounded-2xl bg-brand-100 text-2xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid {{ topic.icon }}" aria-hidden="true"></i></span>
+    <div class="flex-1">
+      <h1 class="text-3xl font-bold tracking-tight md:text-4xl">{{ topic.title }}</h1>
+      <p class="text-lg text-stone-500 dark:text-stone-400" lang="en">{{ topic.title_en }}</p>
+    </div>
+  </header>
+  {% if topic.summary %}<p class="mt-4 max-w-[65ch] text-stone-600 dark:text-stone-400">{{ topic.summary }}</p>{% endif %}
+
+  {% if locked %}
+    <div class="card mt-10 p-10 text-center">
+      <i class="fa-solid fa-crown text-3xl text-amber-500" aria-hidden="true"></i>
+      <p class="mt-3 text-stone-600 dark:text-stone-400">Тази тема е част от Премиум плана, който стартира скоро.</p>
+    </div>
+  {% elif words %}
+    <div class="mt-10 flex gap-2" role="tablist" aria-label="Режим">
+      <button type="button" role="tab" class="btn btn-secondary btn-sm aria-selected:border-brand-600 aria-selected:bg-brand-50 aria-selected:text-brand-900 dark:aria-selected:border-brand-400 dark:aria-selected:bg-brand-950 dark:aria-selected:text-brand-100" aria-selected="true" data-tab="list"><i class="fa-solid fa-list" aria-hidden="true"></i>Списък</button>
+      <button type="button" role="tab" class="btn btn-secondary btn-sm aria-selected:border-brand-600 aria-selected:bg-brand-50 aria-selected:text-brand-900 dark:aria-selected:border-brand-400 dark:aria-selected:bg-brand-950 dark:aria-selected:text-brand-100" aria-selected="false" data-tab="cards"><i class="fa-solid fa-clone" aria-hidden="true"></i>Карти</button>
+    </div>
+
+    <section data-panel="list" class="mt-6">
+      <ul class="card divide-y divide-stone-200 dark:divide-stone-800">
+        {% for w in words %}
+          <li class="flex items-start gap-4 p-4 sm:p-5">
+            <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 transition-colors hover:bg-brand-100 hover:text-brand-800 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-brand-950 dark:hover:text-brand-300" data-speak="{{ w.english }}" aria-label="Чуй: {{ w.english }}">
+              <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            </button>
+            <div class="flex-1">
+              <p class="text-lg font-semibold" lang="en">{{ w.english }}{% if w.transcription %} <span class="ml-1 text-sm font-normal text-stone-500 dark:text-stone-400">{{ w.transcription }}</span>{% endif %}</p>
+              <p class="text-stone-700 dark:text-stone-300">{{ w.bulgarian }}</p>
+              {% if w.example_en %}
+                <p class="mt-2 text-sm text-stone-600 dark:text-stone-400"><span lang="en" class="italic">{{ w.example_en }}</span>{% if w.example_bg %} <span class="text-stone-500">({{ w.example_bg }})</span>{% endif %}</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section data-panel="cards" class="mt-6" hidden data-flashcards>
+      <div class="mx-auto max-w-lg">
+        <div class="flex items-center justify-between text-sm text-stone-500 dark:text-stone-400">
+          <span data-fc-counter class="tabular-nums"></span>
+          <label class="flex cursor-pointer items-center gap-2"><input type="checkbox" class="size-4 accent-brand-700" data-fc-reverse>Първо на български</label>
+        </div>
+        <button type="button" class="flashcard mt-3 block h-72 w-full" data-fc-card aria-label="Обърни картата">
+          <span class="flashcard-inner block">
+            <span class="flashcard-face card shadow-lg shadow-stone-900/5">
+              <span class="text-2xl font-bold sm:text-3xl" data-fc-front></span>
+              <span class="mt-2 text-sm text-stone-500 dark:text-stone-400" data-fc-front-sub></span>
+              <span class="absolute bottom-4 text-xs text-stone-400"><i class="fa-solid fa-hand-pointer mr-1" aria-hidden="true"></i>Докосни, за да обърнеш</span>
+            </span>
+            <span class="flashcard-face flashcard-back bg-brand-700 text-white dark:bg-brand-800">
+              <span class="text-2xl font-bold sm:text-3xl" data-fc-back></span>
+              <span class="mt-3 max-w-sm text-sm text-brand-50/90" data-fc-back-sub></span>
+            </span>
+          </span>
+        </button>
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <button type="button" class="btn btn-secondary" data-fc-prev aria-label="Предишна"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-secondary" data-fc-speak><i class="fa-solid fa-volume-high" aria-hidden="true"></i>Чуй</button>
+          <button type="button" class="btn btn-secondary" data-fc-shuffle><i class="fa-solid fa-shuffle" aria-hidden="true"></i>Разбъркай</button>
+          <button type="button" class="btn btn-primary" data-fc-next aria-label="Следваща"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+      {{ cards|json_script:"cards-data" }}
+    </section>
+  {% else %}
+    <div class="card mt-10 p-10 text-center text-stone-600 dark:text-stone-400">В тази тема още няма думи.</div>
+  {% endif %}
+
+  {% if others %}
+    <section class="mt-16">
+      <h2 class="text-xl font-semibold">Още теми</h2>
+      <ul class="mt-4 flex flex-wrap gap-2">
+        {% for t in others %}
+          <li><a href="{{ t.get_absolute_url }}" class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium hover:border-brand-600 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-brand-400"><i class="fa-solid {{ t.icon }} text-brand-700 dark:text-brand-400" aria-hidden="true"></i>{{ t.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/flashcards.js' %}" defer></script>{% endblock %}

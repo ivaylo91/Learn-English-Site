@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+{# Hero #}
+<section class="container-page grid items-center gap-10 pt-10 pb-16 md:grid-cols-[1.25fr_1fr] md:pt-16 lg:gap-16 lg:pt-20">
+  <div class="reveal">
+    <span class="badge badge-brand"><i class="fa-solid fa-gift" aria-hidden="true"></i>Безплатно, без кредитна карта</span>
+    <h1 class="mt-5 text-4xl leading-[1.1] font-extrabold tracking-tight md:text-5xl xl:text-[3.5rem]">
+      Английски, обяснен <span class="block text-brand-700 dark:text-brand-400">на български.</span>
+    </h1>
+    <p class="mt-5 max-w-[46ch] text-lg leading-relaxed text-stone-600 dark:text-stone-400">
+      Кратки уроци, упражнения с моментална проверка и фрази за пътуване. От първата дума до свободен разговор.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary text-base">Продължи обучението<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      {% else %}
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary text-base">Започни безплатно<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      {% endif %}
+      <a href="{% url 'placement:test' %}" class="btn btn-secondary text-base"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Тест за ниво</a>
+    </div>
+  </div>
+
+  <div class="reveal relative" style="--i: 2">
+    <img
+      src="https://picsum.photos/seed/govori-travel-city/960/1080"
+      alt="Пътуваща жена разглежда карта на улица в чужд град"
+      width="960" height="1080"
+      class="aspect-[8/9] w-full rounded-3xl object-cover shadow-xl shadow-stone-900/10"
+      fetchpriority="high">
+    <div class="absolute -bottom-6 left-4 right-4 sm:-left-8 sm:right-auto sm:w-72">
+      <div class="card p-4 shadow-lg shadow-stone-900/10">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-lg font-semibold">Where is the station?</p>
+            <p class="text-sm text-stone-600 dark:text-stone-400">Къде е гарата?</p>
+          </div>
+          <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full bg-brand-700 text-white transition-transform hover:scale-105 active:scale-95 dark:bg-brand-500 dark:text-stone-950" data-speak="Where is the station?" aria-label="Чуй произношението">
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# Levels ladder #}
+<section class="container-page mt-16 md:mt-24">
+  <h2 class="max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">Шест нива. Един ясен път.</h2>
+  <p class="mt-3 max-w-[60ch] text-stone-600 dark:text-stone-400">
+    Курсът следва Общата европейска езикова рамка (CEFR). Не знаеш откъде да започнеш? Тестът за ниво отнема около 5 минути.
+  </p>
+  <ol class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    {% for level in levels %}
+      <li>
+        <a href="{{ level.get_absolute_url }}" class="group flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-4 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-brand-400"
+           style="--i: {{ forloop.counter }}">
+          <span class="text-2xl font-extrabold text-brand-700 dark:text-brand-400">{{ level.code }}</span>
+          <span class="mt-1 font-semibold">{{ level.title }}</span>
+          <span class="mt-2 text-sm leading-snug text-stone-600 dark:text-stone-400">{{ level.summary }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+
+{# How it works, with a live mini exercise #}
+<section class="container-page mt-24 grid items-center gap-12 md:mt-32 md:grid-cols-2">
+  <div>
+    <h2 class="text-3xl font-bold tracking-tight md:text-4xl">Учиш, проверяваш, запомняш.</h2>
+    <ul class="mt-8 space-y-6">
+      <li class="flex gap-4">
+        <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+        <div>
+          <h3 class="font-semibold">Граматика без заучаване</h3>
+          <p class="mt-1 text-stone-600 dark:text-stone-400">Всяко правило е обяснено на разбираем български, с примери и сравнения с нашия език.</p>
+        </div>
+      </li>
+      <li class="flex gap-4">
+        <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+        <div>
+          <h3 class="font-semibold">Проверка на момента</h3>
+          <p class="mt-1 text-stone-600 dark:text-stone-400">Разбираш веднага къде грешиш и защо. Без да чакаш учител.</p>
+        </div>
+      </li>
+      <li class="flex gap-4">
+        <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></span>
+        <div>
+          <h3 class="font-semibold">Чуй как се казва</h3>
+          <p class="mt-1 text-stone-600 dark:text-stone-400">Всяка дума и фраза има бутон за произношение. Слушай колкото пъти искаш.</p>
+        </div>
+      </li>
+      <li class="flex gap-4">
+        <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+        <div>
+          <h3 class="font-semibold">Поредица от дни</h3>
+          <p class="mt-1 text-stone-600 dark:text-stone-400">Събирай точки опит и пази серията си. Пет минути на ден правят разликата.</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card p-6 shadow-xl shadow-stone-900/5 sm:p-8" data-demo-quiz>
+    <div class="flex items-center justify-between text-sm">
+      <span class="badge badge-muted">A1 Глаголът to be</span>
+      <span class="text-stone-500 dark:text-stone-400">Опитай сега</span>
+    </div>
+    <p class="mt-6 text-sm font-medium text-stone-600 dark:text-stone-400">Избери правилната форма</p>
+    <p class="mt-2 text-2xl font-semibold">She ___ a doctor.</p>
+    <div class="mt-6 grid gap-3">
+      <button type="button" class="option" data-demo-option="wrong"><span class="font-mono text-sm text-stone-500">1</span>am</button>
+      <button type="button" class="option" data-demo-option="right"><span class="font-mono text-sm text-stone-500">2</span>is</button>
+      <button type="button" class="option" data-demo-option="wrong"><span class="font-mono text-sm text-stone-500">3</span>are</button>
+    </div>
+    <p class="mt-5 hidden rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-950 dark:bg-emerald-950/50 dark:text-emerald-100" data-demo-feedback="right">
+      <strong>Точно така!</strong> С he, she и it използваме <em>is</em>.
+    </p>
+    <p class="mt-5 hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-950 dark:bg-red-950/50 dark:text-red-100" data-demo-feedback="wrong">
+      <strong>Почти.</strong> С she се казва <em>she is</em>. <em>Am</em> е само за I, а <em>are</em> за you, we и they.
+    </p>
+  </div>
+</section>
+
+{# Travel band #}
+<section class="mt-24 bg-brand-50 py-16 md:mt-32 md:py-24 dark:bg-brand-950/40">
+  <div class="container-page grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-center">
+    <div>
+      <h2 class="text-3xl font-bold tracking-tight md:text-4xl">Пътуваш скоро?</h2>
+      <p class="mt-3 max-w-[48ch] text-stone-700 dark:text-stone-300">
+        Готови фрази за летището, хотела, ресторанта и улицата. С превод, произношение и карти за упражнение.
+      </p>
+      <a href="{% url 'vocabulary:travel' %}" class="btn btn-primary mt-8">Към фразите за пътуване<i class="fa-solid fa-plane-departure" aria-hidden="true"></i></a>
+    </div>
+    <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {% for topic in travel_topics %}
+        <li class="{% if forloop.first %}col-span-2 row-span-2 sm:col-span-1{% endif %}">
+          <a href="{{ topic.get_absolute_url }}" class="group relative flex h-full min-h-32 flex-col justify-end overflow-hidden rounded-2xl bg-white p-4 transition-transform duration-200 hover:-translate-y-0.5 dark:bg-stone-900">
+            {% if forloop.first %}
+              <img src="https://picsum.photos/seed/govori-{{ topic.slug }}/600/700" alt="" class="absolute inset-0 size-full object-cover" loading="lazy">
+              <span class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent"></span>
+              <span class="relative text-white">
+                <i class="fa-solid {{ topic.icon }} text-xl" aria-hidden="true"></i>
+                <span class="mt-2 block text-lg font-semibold">{{ topic.title }}</span>
+                <span class="text-sm text-white/80">{{ topic.title_en }}</span>
+              </span>
+            {% else %}
+              <i class="fa-solid {{ topic.icon }} text-xl text-brand-700 dark:text-brand-400" aria-hidden="true"></i>
+              <span class="mt-3 font-semibold">{{ topic.title }}</span>
+              <span class="text-sm text-stone-500 dark:text-stone-400">{{ topic.title_en }}</span>
+            {% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+{# Closing CTA #}
+<section class="container-page mt-24 text-center md:mt-32">
+  <h2 class="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-balance md:text-4xl">Първият урок отнема 5 минути.</h2>
+  <p class="mx-auto mt-3 max-w-[50ch] text-stone-600 dark:text-stone-400">Създай профил, за да пазиш прогреса си, или просто отвори урок.</p>
+  <div class="mt-8 flex flex-wrap justify-center gap-3">
+    {% if user.is_authenticated %}
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary text-base">Продължи обучението<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    {% else %}
+      <a href="{% url 'accounts:signup' %}" class="btn btn-primary text-base">Започни безплатно<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    {% endif %}
+    <a href="{% url 'courses:levels' %}" class="btn btn-secondary text-base">Разгледай курса</a>
+  </div>
+</section>
+{% endblock %}

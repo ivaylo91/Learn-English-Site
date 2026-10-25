@@ -1,0 +1,6 @@
+<div>
+  <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}</label>
+  {{ field }}
+  {% if field.help_text %}<p class="field-help" id="{{ field.id_for_label }}_help">{{ field.help_text|safe }}</p>{% endif %}
+  {% for error in field.errors %}<p class="field-error"><i class="fa-solid fa-circle-exclamation mr-1" aria-hidden="true"></i>{{ error }}</p>{% endfor %}
+</div>

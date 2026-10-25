@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-page grid gap-12 py-12 md:grid-cols-2 md:items-center md:py-20">
+  <div class="hidden md:block">
+    <img src="https://picsum.photos/seed/govori-study-desk/900/1000" alt="" class="aspect-[9/10] w-full rounded-3xl object-cover" loading="lazy">
+  </div>
+  <div class="mx-auto w-full max-w-md">
+    {% block auth %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

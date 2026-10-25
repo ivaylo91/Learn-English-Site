@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Моето табло | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container-page py-10 md:py-14">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Здравей, {{ user.name }}!</h1>
+      <p class="mt-2 text-stone-600 dark:text-stone-400">
+        {% if user.level %}Твоето ниво: <strong class="text-stone-900 dark:text-white">{{ user.get_level_display }}</strong>{% else %}Още не знаем нивото ти. <a class="font-semibold text-brand-700 hover:underline dark:text-brand-400" href="{% url 'placement:test' %}">Направи теста</a>{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i>Настройки</a>
+  </div>
+
+  <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="card flex items-center gap-4 p-5">
+      <span class="grid size-12 place-items-center rounded-xl bg-orange-100 text-xl text-orange-600 dark:bg-orange-950 dark:text-orange-400"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+      <div>
+        <p class="text-2xl font-bold">{{ user.current_streak }} {% if user.current_streak == 1 %}ден{% else %}дни{% endif %}</p>
+        <p class="text-sm text-stone-600 dark:text-stone-400">поредица (рекорд {{ user.longest_streak }})</p>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-stone-600 dark:text-stone-400">Днешна цел</p>
+        <p class="text-sm font-semibold">{{ xp_today }} / {{ user.daily_goal_xp }} XP</p>
+      </div>
+      <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" role="progressbar" aria-valuenow="{{ goal_percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Днешна цел">
+        <div class="h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width: {{ goal_percent }}%"></div>
+      </div>
+      <p class="mt-2 text-sm text-stone-600 dark:text-stone-400">{% if goal_percent >= 100 %}Целта за днес е изпълнена!{% else %}Един урок на ден пази серията жива.{% endif %}</p>
+    </div>
+    <div class="card flex items-center gap-4 p-5">
+      <span class="grid size-12 place-items-center rounded-xl bg-brand-100 text-xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+      <div>
+        <p class="text-2xl font-bold">{{ user.xp|intcomma }} XP</p>
+        <p class="text-sm text-stone-600 dark:text-stone-400">общо точки опит</p>
+      </div>
+    </div>
+    <div class="card flex items-center gap-4 p-5">
+      <span class="grid size-12 place-items-center rounded-xl bg-stone-100 text-xl text-stone-700 dark:bg-stone-800 dark:text-stone-200"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+      <div>
+        <p class="text-2xl font-bold">{{ completed_count }}</p>
+        <p class="text-sm text-stone-600 dark:text-stone-400">{% if completed_count == 1 %}завършен урок{% else %}завършени урока{% endif %}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+    <div class="space-y-6">
+      {% if next_lesson %}
+        <a href="{{ next_lesson.get_absolute_url }}" class="group block overflow-hidden rounded-2xl bg-brand-800 p-6 text-white transition-transform duration-200 hover:-translate-y-0.5 sm:p-8 dark:bg-brand-900">
+          <p class="text-sm font-medium text-brand-100">Следващ урок: {{ next_lesson.unit.level.code }}, {{ next_lesson.unit.title }}</p>
+          <h2 class="mt-2 text-2xl font-bold sm:text-3xl">{{ next_lesson.title }}</h2>
+          {% if next_lesson.summary %}<p class="mt-2 max-w-[55ch] text-brand-50/90">{{ next_lesson.summary }}</p>{% endif %}
+          <div class="mt-6 flex flex-wrap items-center gap-4">
+            <span class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-900 transition-transform group-active:scale-[0.98]">
+              Започни<i class="fa-solid fa-play" aria-hidden="true"></i>
+            </span>
+            <span class="text-sm text-brand-100"><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>{{ next_lesson.minutes }} мин, +{{ next_lesson.xp_reward }} XP</span>
+          </div>
+        </a>
+      {% else %}
+        <div class="card p-8 text-center">
+          <i class="fa-solid fa-trophy text-3xl text-brand-600" aria-hidden="true"></i>
+          <h2 class="mt-3 text-xl font-bold">Всички налични уроци са завършени!</h2>
+          <p class="mt-2 text-stone-600 dark:text-stone-400">Добавяме нови редовно. Междувременно упражнявай думи в речника.</p>
+          <a href="{% url 'vocabulary:topics' %}" class="btn btn-primary mt-5">Към речника</a>
+        </div>
+      {% endif %}
+
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold">Напредък по нива</h2>
+        <ul class="mt-5 space-y-4">
+          {% for row in level_rows %}
+            <li>
+              <a href="{{ row.level.get_absolute_url }}" class="flex items-center gap-4 rounded-lg hover:opacity-80">
+                <span class="w-8 font-bold text-brand-700 dark:text-brand-400">{{ row.level.code }}</span>
+                <span class="flex-1">
+                  <span class="flex justify-between text-sm"><span class="font-medium">{{ row.level.title }}</span><span class="text-stone-500 dark:text-stone-400">{{ row.done }}/{{ row.total }}</span></span>
+                  <span class="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                    <span class="block h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width: {% if row.total %}{% widthratio row.done row.total 100 %}{% else %}0{% endif %}%"></span>
+                  </span>
+                </span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <aside class="space-y-6">
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold">Фрази за пътуване</h2>
+        <ul class="mt-4 grid grid-cols-2 gap-2">
+          {% for topic in travel_topics %}
+            <li><a href="{{ topic.get_absolute_url }}" class="flex items-center gap-2 rounded-xl bg-stone-100 px-3 py-2.5 text-sm font-medium hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700"><i class="fa-solid {{ topic.icon }} text-brand-700 dark:text-brand-400" aria-hidden="true"></i>{{ topic.title }}</a></li>
+          {% endfor %}
+        </ul>
+        <a href="{% url 'vocabulary:travel' %}" class="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-400">Всички теми</a>
+      </section>
+
+      <section class="card p-6">
+        <h2 class="text-lg font-semibold">Последно завършени</h2>
+        {% if recent %}
+          <ul class="mt-4 space-y-3">
+            {% for p in recent %}
+              <li class="flex items-center justify-between gap-3 text-sm">
+                <a href="{{ p.lesson.get_absolute_url }}" class="truncate font-medium hover:underline">{{ p.lesson.title }}</a>
+                <span class="badge badge-muted shrink-0">{{ p.best_score }}%</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="mt-3 text-sm text-stone-600 dark:text-stone-400">Тук ще виждаш уроците, които завършиш.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

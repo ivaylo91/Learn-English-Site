@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Твоето ниво: {{ result.level }} | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container-page max-w-2xl py-12 text-center md:py-20">
+  <p class="text-stone-600 dark:text-stone-400">Препоръчваме ти да започнеш от</p>
+  <p class="mx-auto mt-4 grid size-28 place-items-center rounded-3xl bg-brand-700 text-5xl font-extrabold text-white dark:bg-brand-500 dark:text-stone-950">{{ result.level }}</p>
+  {% if level %}<h1 class="mt-5 text-3xl font-bold tracking-tight">{{ level.title }}</h1>
+  <p class="mx-auto mt-2 max-w-[50ch] text-stone-600 dark:text-stone-400">{{ level.summary }}</p>{% endif %}
+  <p class="mt-4 text-sm text-stone-500 dark:text-stone-400">{{ result.correct }} от {{ result.total }} верни отговора</p>
+
+  <ul class="mx-auto mt-8 grid max-w-md grid-cols-3 gap-2 sm:grid-cols-6">
+    {% for row in result.by_level %}
+      <li class="rounded-xl border border-stone-200 bg-white px-2 py-3 dark:border-stone-800 dark:bg-stone-900">
+        <span class="block text-sm font-bold">{{ row.0 }}</span>
+        <span class="text-xs text-stone-500 dark:text-stone-400">{{ row.1 }}/{{ row.2 }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="mt-10 flex flex-wrap justify-center gap-3">
+    {% if level %}<a href="{{ level.get_absolute_url }}" class="btn btn-primary text-base">Започни {{ result.level }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+    {% if not user.is_authenticated %}
+      <a href="{% url 'accounts:signup' %}" class="btn btn-secondary text-base">Запази нивото в профил</a>
+    {% else %}
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary text-base">Към таблото</a>
+    {% endif %}
+  </div>
+  <a href="{% url 'placement:test' %}" class="mt-6 inline-block text-sm text-stone-500 hover:underline dark:text-stone-400">Направи теста отново</a>
+</div>
+{% endblock %}

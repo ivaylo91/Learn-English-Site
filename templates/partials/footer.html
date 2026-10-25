@@ -1,0 +1,38 @@
+<footer class="mt-24 border-t border-stone-200 dark:border-stone-800">
+  <div class="container-page grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr]">
+    <div>
+      <a href="{% url 'core:home' %}" class="flex items-center gap-2.5 font-bold">
+        <span class="grid size-8 place-items-center rounded-lg bg-brand-700 text-sm text-white dark:bg-brand-500 dark:text-stone-950">
+          <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+        </span>
+        {{ SITE_NAME }}
+      </a>
+      <p class="mt-3 max-w-sm text-sm leading-relaxed text-stone-600 dark:text-stone-400">
+        Английски език с обяснения на български. Безплатно, от първата дума до свободен разговор.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-sm font-semibold">Учи</h2>
+      <ul class="mt-3 space-y-2 text-sm text-stone-600 dark:text-stone-400">
+        <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'courses:levels' %}">Курс A1 до C2</a></li>
+        <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'vocabulary:topics' %}">Речник по теми</a></li>
+        <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'vocabulary:travel' %}">Фрази за пътуване</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="text-sm font-semibold">Започни</h2>
+      <ul class="mt-3 space-y-2 text-sm text-stone-600 dark:text-stone-400">
+        <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'placement:test' %}">Тест за ниво</a></li>
+        {% if user.is_authenticated %}
+          <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'accounts:dashboard' %}">Моето табло</a></li>
+        {% else %}
+          <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'accounts:signup' %}">Регистрация</a></li>
+          <li><a class="hover:text-stone-900 dark:hover:text-white" href="{% url 'accounts:login' %}">Вход</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-stone-200 dark:border-stone-800">
+    <p class="container-page py-6 text-xs text-stone-500 dark:text-stone-400">&copy; {% now "Y" %} {{ SITE_NAME }}. Всички права запазени.</p>
+  </div>
+</footer>
