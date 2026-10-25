@@ -3,7 +3,9 @@ import random
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.core.seed import courses, courses_advanced, listening, mistakes, placement, pronunciation, vocabulary
+from apps.core.seed import (
+    courses, courses_advanced, courses_more, listening, mistakes, placement, pronunciation, vocabulary,
+)
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
 from apps.placement.models import PlacementChoice, PlacementQuestion
 from apps.vocabulary.models import Topic, Word
@@ -38,7 +40,8 @@ class Command(BaseCommand):
             level, _ = Level.objects.update_or_create(code=data["code"], defaults={k: v for k, v in data.items() if k != "code"})
             levels[level.code] = level
 
-        units = courses.UNITS + courses_advanced.UNITS + pronunciation.UNITS + listening.UNITS
+        units = courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + pronunciation.UNITS + listening.UNITS
+        all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES}
         lesson_count = 0
         for u in units:
             unit, _ = Unit.objects.update_or_create(
@@ -53,7 +56,7 @@ class Command(BaseCommand):
                               "summary": l.get("summary", ""), "theory": l["theory"].strip(), "order": order,
                               "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
                               "dialogue": l.get("dialogue", ""),
-                              "mistakes": "\n".join(" | ".join(m) for m in mistakes.MISTAKES.get(l["slug"], []))},
+                              "mistakes": "\n".join(" | ".join(m) for m in all_mistakes.get(l["slug"], []))},
                 )
                 # Exercises are updated in place by position, so learners' mistakes linked to them survive.
                 for ex_order, e in enumerate(l["exercises"], start=1):

@@ -12,11 +12,21 @@
   // Mobile menu
   var menuBtn = document.querySelector("[data-menu-toggle]");
   var menu = document.getElementById("mobile-menu");
+  function setMenu(open) {
+    menu.classList.toggle("hidden", !open);
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Затвори менюто" : "Отвори менюто");
+    menuBtn.querySelector("[data-icon-open]").hidden = open;
+    menuBtn.querySelector("[data-icon-close]").hidden = !open;
+  }
   if (menuBtn && menu) {
-    menuBtn.addEventListener("click", function () {
-      var open = menu.classList.toggle("hidden") === false;
-      menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.addEventListener("click", function () { setMenu(menu.classList.contains("hidden")); });
+    menu.addEventListener("click", function (e) { if (e.target.closest("a")) setMenu(false); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !menu.classList.contains("hidden")) { setMenu(false); menuBtn.focus(); }
     });
+    // Close when the layout switches to the desktop nav.
+    window.matchMedia("(min-width: 1024px)").addEventListener("change", function (e) { if (e.matches) setMenu(false); });
   }
 
   // Close <details> dropdowns on outside click / Escape
