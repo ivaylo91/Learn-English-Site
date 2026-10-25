@@ -1,10 +1,25 @@
+import random
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.core.seed import courses, placement, vocabulary
+from apps.core.seed import courses, courses_advanced, listening, placement, vocabulary
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
 from apps.placement.models import PlacementChoice, PlacementQuestion
 from apps.vocabulary.models import Topic, Word
+
+TOPIC_COLORS = {
+    "airport": "sky", "hotel": "violet", "restaurant": "amber", "directions-transport": "emerald",
+    "shopping": "rose", "emergencies": "orange", "numbers": "indigo", "family": "rose",
+    "food-drinks": "emerald", "time-calendar": "sky",
+}
+
+
+def shuffled_choices(prompt, choices, correct):
+    """Shuffle choices the same way every run, so the right answer isn't always first."""
+    items = [(text, i == correct) for i, text in enumerate(choices)]
+    random.Random(prompt).shuffle(items)
+    return items
 
 
 class Command(BaseCommand):
@@ -23,8 +38,9 @@ class Command(BaseCommand):
             level, _ = Level.objects.update_or_create(code=data["code"], defaults={k: v for k, v in data.items() if k != "code"})
             levels[level.code] = level
 
+        units = courses.UNITS + courses_advanced.UNITS + listening.UNITS
         lesson_count = 0
-        for u in courses.UNITS:
+        for u in units:
             unit, _ = Unit.objects.update_or_create(
                 slug=u["slug"],
                 defaults={"level": levels[u["level"]], "title": u["title"], "icon": u["icon"],
@@ -35,19 +51,24 @@ class Command(BaseCommand):
                     slug=l["slug"],
                     defaults={"unit": unit, "title": l["title"], "title_en": l.get("title_en", ""), "kind": l["kind"],
                               "summary": l.get("summary", ""), "theory": l["theory"].strip(), "order": order,
-                              "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10)},
+                              "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
+                              "dialogue": l.get("dialogue", "")},
                 )
                 # Exercises are replaced wholesale so edits in the seed file take effect.
                 lesson.exercises.all().delete()
                 for ex_order, e in enumerate(l["exercises"], start=1):
                     exercise = Exercise.objects.create(
                         lesson=lesson, type=e["type"], instruction=e["instruction"], prompt=e["prompt"],
-                        answers=e.get("answers", ""), explanation=e.get("explanation", ""), order=ex_order,
+                        audio_text=e.get("audio", ""), answers=e.get("answers", ""),
+                        explanation=e.get("explanation", ""), order=ex_order,
                     )
-                    for i, text in enumerate(e.get("choices", [])):
-                        Choice.objects.create(exercise=exercise, text=text, is_correct=i == e["correct"])
+                    if e.get("choices"):
+                        Choice.objects.bulk_create(
+                            Choice(exercise=exercise, text=text, is_correct=ok)
+                            for text, ok in shuffled_choices(e["prompt"] + e.get("audio", ""), e["choices"], e["correct"])
+                        )
                 lesson_count += 1
-        self.stdout.write(f"  {len(levels)} levels, {len(courses.UNITS)} units, {lesson_count} lessons")
+        self.stdout.write(f"  {len(levels)} levels, {len(units)} units, {lesson_count} lessons")
 
     def seed_vocabulary(self):
         word_count = 0
@@ -55,7 +76,8 @@ class Command(BaseCommand):
             topic, _ = Topic.objects.update_or_create(
                 slug=t["slug"],
                 defaults={"title": t["title"], "title_en": t["title_en"], "icon": t["icon"], "level": t["level"],
-                          "is_travel": t.get("is_travel", False), "order": t["order"], "summary": t.get("summary", "")},
+                          "is_travel": t.get("is_travel", False), "order": t["order"], "summary": t.get("summary", ""),
+                          "color": TOPIC_COLORS.get(t["slug"], "teal")},
             )
             topic.words.all().delete()
             Word.objects.bulk_create(

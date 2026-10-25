@@ -1,17 +1,17 @@
 <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {% for topic in topics %}
     <li class="reveal" style="--i: {{ forloop.counter0 }}">
-      <a href="{{ topic.get_absolute_url }}" class="card group flex h-full items-start gap-4 p-5 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 dark:hover:border-brand-400">
-        <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-100 text-xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid {{ topic.icon }}" aria-hidden="true"></i></span>
+      <a href="{{ topic.get_absolute_url }}" class="card card-link wiggle group flex h-full items-start gap-4 p-5 {{ topic.theme.hover }}">
+        <span class="wiggle-target grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-2xl text-white {{ topic.theme.glow }}"><i class="fa-solid {{ topic.icon }}" aria-hidden="true"></i></span>
         <span class="flex-1">
           <span class="flex flex-wrap items-center gap-2">
-            <span class="font-semibold">{{ topic.title }}</span>
+            <span class="text-lg font-black">{{ topic.title }}</span>
             <span class="badge badge-muted">{{ topic.level }}</span>
             {% if topic.is_premium %}<span class="badge bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"><i class="fa-solid fa-crown" aria-hidden="true"></i>Премиум</span>{% endif %}
           </span>
           <span class="block text-sm text-stone-500 dark:text-stone-400" lang="en">{{ topic.title_en }}</span>
           {% if topic.summary %}<span class="mt-2 block text-sm text-stone-600 dark:text-stone-400">{{ topic.summary }}</span>{% endif %}
-          <span class="mt-3 block text-xs font-medium text-stone-500 dark:text-stone-400">{{ topic.word_count }} {% if topic.word_count == 1 %}израз{% else %}израза{% endif %}</span>
+          <span class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold {{ topic.theme.text }}"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>{{ topic.word_count }} {% if topic.word_count == 1 %}израз{% else %}израза{% endif %}</span>
         </span>
       </a>
     </li>

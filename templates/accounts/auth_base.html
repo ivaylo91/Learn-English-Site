@@ -1,8 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container-page grid gap-12 py-12 md:grid-cols-2 md:items-center md:py-20">
-  <div class="hidden md:block">
-    <img src="https://picsum.photos/seed/govori-study-desk/900/1000" alt="" class="aspect-[9/10] w-full rounded-3xl object-cover" loading="lazy">
+<div class="container-page grid gap-12 py-10 md:grid-cols-2 md:items-center md:py-16">
+  <div class="relative hidden overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 via-sky-600 to-violet-600 p-10 text-white md:block">
+    <div class="blob -top-10 -right-10 size-56 bg-amber-300/50"></div>
+    <div class="blob -bottom-16 -left-10 size-64 bg-rose-400/40"></div>
+    <div class="relative">
+      <p class="text-3xl leading-tight font-black">{% block side_title %}Учи английски с удоволствие.{% endblock %}</p>
+      <ul class="mt-8 space-y-4 text-lg font-bold">
+        <li class="flex items-center gap-3"><span class="grid size-10 place-items-center rounded-2xl bg-white/20"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>Поредица от дни и точки опит</li>
+        <li class="flex items-center gap-3"><span class="grid size-10 place-items-center rounded-2xl bg-white/20"><i class="fa-solid fa-headphones" aria-hidden="true"></i></span>Уроци по слушане с диалози</li>
+        <li class="flex items-center gap-3"><span class="grid size-10 place-items-center rounded-2xl bg-white/20"><i class="fa-solid fa-plane" aria-hidden="true"></i></span>Фрази за всяко пътуване</li>
+        <li class="flex items-center gap-3"><span class="grid size-10 place-items-center rounded-2xl bg-white/20"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>Напредък от A1 до C2</li>
+      </ul>
+      <div class="mt-10 rounded-3xl bg-white/15 p-5 backdrop-blur">
+        <p class="text-sm font-semibold text-white/80">Дума на деня</p>
+        <div class="mt-1 flex items-center justify-between gap-3">
+          <p class="text-2xl font-black" lang="en">journey</p>
+          <button type="button" class="grid size-10 place-items-center rounded-full bg-white text-brand-700" data-speak="journey" aria-label="Чуй: journey"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
+        </div>
+        <p class="font-semibold text-white/90">пътуване, път</p>
+      </div>
+    </div>
   </div>
   <div class="mx-auto w-full max-w-md">
     {% block auth %}{% endblock %}

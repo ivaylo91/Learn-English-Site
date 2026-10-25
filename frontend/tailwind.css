@@ -7,7 +7,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Onest", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
 
   /* One accent (teal). Swap these to rebrand. */
   --color-brand-50: oklch(0.984 0.014 180.72);
@@ -30,7 +30,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-stone-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
+    @apply bg-[#fbfaf7] text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-600 dark:outline-brand-400;
@@ -42,17 +42,25 @@
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
 
+  /* Chunky "pressable" buttons: a solid bottom edge that collapses on press. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold whitespace-nowrap
-      transition-[transform,background-color,border-color,color] duration-200 ease-out-soft
-      active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-extrabold whitespace-nowrap
+      transition-[transform,box-shadow,background-color,border-color,color] duration-150 ease-out-soft
+      disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
-    @apply bg-brand-700 text-white hover:bg-brand-800 dark:bg-brand-500 dark:text-stone-950 dark:hover:bg-brand-400;
+    @apply bg-brand-600 text-white shadow-[0_4px_0_0_var(--color-brand-800)] hover:bg-brand-500
+      active:translate-y-[3px] active:shadow-[0_1px_0_0_var(--color-brand-800)]
+      dark:bg-brand-500 dark:text-stone-950 dark:shadow-[0_4px_0_0_var(--color-brand-800)] dark:hover:bg-brand-400;
   }
   .btn-secondary {
-    @apply border border-stone-300 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-100
-      dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:border-stone-600 dark:hover:bg-stone-800;
+    @apply border-2 border-stone-200 bg-white text-stone-800 shadow-[0_3px_0_0_var(--color-stone-200)] hover:bg-stone-50
+      active:translate-y-[2px] active:shadow-[0_1px_0_0_var(--color-stone-200)]
+      dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:shadow-[0_3px_0_0_var(--color-stone-700)] dark:hover:bg-stone-800;
+  }
+  .btn-sun {
+    @apply bg-amber-400 text-amber-950 shadow-[0_4px_0_0_var(--color-amber-600)] hover:bg-amber-300
+      active:translate-y-[3px] active:shadow-[0_1px_0_0_var(--color-amber-600)];
   }
   .btn-ghost {
     @apply text-stone-700 hover:bg-stone-200/60 dark:text-stone-300 dark:hover:bg-stone-800;
@@ -62,17 +70,42 @@
   }
 
   .card {
-    @apply rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900;
+    @apply rounded-3xl border-2 border-stone-200/80 bg-white dark:border-stone-800 dark:bg-stone-900;
+  }
+  /* Clickable card: lifts on hover. Pair with a theme "hover" border class. */
+  .card-link {
+    @apply transition-[transform,border-color,box-shadow] duration-200 ease-out-soft hover:-translate-y-1
+      hover:shadow-[0_10px_30px_-12px_rgb(28_25_23/0.18)] active:translate-y-0;
   }
 
   .field-label {
     @apply mb-1.5 block text-sm font-medium text-stone-800 dark:text-stone-200;
   }
   .field-input {
-    @apply block w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900
+    @apply block w-full rounded-2xl border-2 border-stone-200 bg-white px-4 py-3 text-base text-stone-900
       placeholder:text-stone-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/25 focus:outline-none
       dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-400
       dark:focus:border-brand-400 dark:focus:ring-brand-400/25;
+  }
+  /* Input with a leading icon: wrap in .field-icon, put <i> first. */
+  .field-icon {
+    @apply relative;
+  }
+  .field-icon > .icon {
+    @apply pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-stone-400 transition-colors dark:text-stone-500;
+  }
+  .field-icon:focus-within > .icon {
+    @apply text-brand-600 dark:text-brand-400;
+  }
+  .field-icon > .field-input {
+    @apply pl-11;
+  }
+  .field-icon > .field-toggle {
+    @apply absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800
+      dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100;
+  }
+  .field-icon:has(.field-toggle) > .field-input {
+    @apply pr-12;
   }
   .field-help {
     @apply mt-1.5 text-sm text-stone-600 dark:text-stone-400;
@@ -132,7 +165,7 @@
 
   /* Exercise option buttons */
   .option {
-    @apply flex w-full items-center gap-3 rounded-xl border-2 border-stone-200 bg-white px-4 py-3.5 text-left text-base font-medium
+    @apply flex w-full items-center gap-3 rounded-2xl border-2 border-b-4 border-stone-200 bg-white px-4 py-3.5 text-left text-base font-semibold
       transition-[border-color,background-color,transform] duration-150 hover:border-stone-400 active:scale-[0.99]
       dark:border-stone-700 dark:bg-stone-900 dark:hover:border-stone-500;
   }
@@ -171,6 +204,31 @@
     animation: reveal-up 0.6s var(--ease-out-soft) both;
     animation-delay: calc(var(--i, 0) * 70ms);
   }
+}
+
+/* Soft color blobs behind hero sections */
+.blob {
+  @apply pointer-events-none absolute rounded-full blur-3xl;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wiggle:hover > .wiggle-target {
+    animation: wiggle 0.5s var(--ease-out-soft);
+  }
+  .pulse-ring {
+    animation: pulse-ring 1.6s ease-out infinite;
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-10deg) scale(1.08); }
+  60% { transform: rotate(8deg) scale(1.08); }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(244 63 94 / 0.45); }
+  100% { box-shadow: 0 0 0 18px rgb(244 63 94 / 0); }
 }
 
 @keyframes reveal-up {

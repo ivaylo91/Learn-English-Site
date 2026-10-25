@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render
 
-from apps.courses.models import Level
+from apps.courses.models import Lesson, Level
 from apps.vocabulary.models import Topic
 
 
@@ -10,5 +10,7 @@ def home(request):
     context = {
         "levels": Level.objects.all(),
         "travel_topics": Topic.objects.filter(is_travel=True)[:6],
+        "listening_lessons": Lesson.objects.filter(is_published=True, kind=Lesson.Kind.LISTENING)
+        .select_related("unit__level")[:4],
     }
     return render(request, "core/home.html", context)

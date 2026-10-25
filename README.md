@@ -48,7 +48,18 @@ With `DATABASE_URL` empty the site uses local SQLite.
 - Edit lessons, exercises, topics and test questions in the admin.
 - `seed_content` loads the starter content from `apps/core/seed/`. It is safe to run again, but it **replaces the exercises, words and placement questions** of the seeded items, so run it only before you start editing that content in the admin.
 - Lesson theory is HTML. Useful classes: `<span class="en">` for English examples, `<div class="tip">` for a tip box, plain `<table>`, `<h3>`, `<ul>`.
-- Exercise types: `choice` (add choices, mark the correct one), `fill` (use `___` in the prompt), `translate`. Several accepted answers are separated with `|`. Checking ignores case, punctuation and curly apostrophes.
+- Exercise types: `choice` (add choices, mark the correct one), `fill` (use `___` in the prompt), `translate`, `dictation`. Several accepted answers are separated with `|`. Checking ignores case, punctuation and curly apostrophes.
+- Any exercise with **audio text** plays it to the learner (browser speech). For `dictation` the audio text is also the correct answer.
+
+### Audio (listening) lessons
+
+- Set the lesson kind to **Слушане**. They are listed at `/courses/listening/`.
+- **Dialogue**: one line per reply, `Speaker | English | Bulgarian`. The page plays it with two voices, at normal or slow speed, with the transcript and translation hidden until the learner opens them.
+- **Audio file** (optional): upload an MP3 to use a real recording instead of the browser voice. Files go to `media/` locally; move them to Supabase Storage before production.
+
+### Colors
+
+Level, lesson-kind and topic colors live in `apps/core/theme.py`. Topics have a `color` field in the admin.
 
 ## Premium (later)
 

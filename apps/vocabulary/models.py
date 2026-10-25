@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 
 from apps.accounts.models import CEFRLevel
+from apps.core.theme import COLOR_CHOICES, theme
 
 
 class Topic(models.Model):
@@ -10,6 +11,7 @@ class Topic(models.Model):
     slug = models.SlugField(unique=True)
     summary = models.CharField("кратко описание", max_length=200, blank=True)
     icon = models.CharField("икона (Font Awesome)", max_length=40, default="fa-comments")
+    color = models.CharField("цвят", max_length=10, choices=COLOR_CHOICES, default="teal")
     level = models.CharField("ниво", max_length=2, choices=CEFRLevel.choices, default=CEFRLevel.A1)
     is_travel = models.BooleanField("за пътуване", default=False)
     is_premium = models.BooleanField("премиум", default=False)
@@ -25,6 +27,10 @@ class Topic(models.Model):
 
     def get_absolute_url(self):
         return reverse("vocabulary:topic", args=[self.slug])
+
+    @property
+    def theme(self):
+        return theme(self.color)
 
 
 class Word(models.Model):

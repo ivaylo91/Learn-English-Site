@@ -11,3 +11,4 @@ bin/
 *.log
 .vscode/
 .idea/
+media/

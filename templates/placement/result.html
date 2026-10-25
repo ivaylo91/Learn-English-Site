@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container-page max-w-2xl py-12 text-center md:py-20">
   <p class="text-stone-600 dark:text-stone-400">Препоръчваме ти да започнеш от</p>
-  <p class="mx-auto mt-4 grid size-28 place-items-center rounded-3xl bg-brand-700 text-5xl font-extrabold text-white dark:bg-brand-500 dark:text-stone-950">{{ result.level }}</p>
+  <p class="mx-auto mt-4 grid size-28 -rotate-6 place-items-center rounded-[2rem] bg-gradient-to-br text-5xl font-black text-white shadow-xl {% if level %}{{ level.theme.glow }}{% else %}from-brand-500 to-brand-700{% endif %}">{{ result.level }}</p>
   {% if level %}<h1 class="mt-5 text-3xl font-bold tracking-tight">{{ level.title }}</h1>
   <p class="mx-auto mt-2 max-w-[50ch] text-stone-600 dark:text-stone-400">{{ level.summary }}</p>{% endif %}
   <p class="mt-4 text-sm text-stone-500 dark:text-stone-400">{{ result.correct }} от {{ result.total }} верни отговора</p>

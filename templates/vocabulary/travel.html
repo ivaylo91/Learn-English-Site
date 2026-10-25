@@ -2,12 +2,14 @@
 {% block title %}Английски за пътуване: фрази | {{ SITE_NAME }}{% endblock %}
 {% block description %}Английски фрази за летището, хотела, ресторанта и града. С превод на български и произношение.{% endblock %}
 {% block content %}
-<section class="container-page grid items-center gap-10 py-12 md:grid-cols-[1.2fr_1fr] md:py-16">
-  <div>
-    <h1 class="text-3xl font-bold tracking-tight md:text-5xl">Английски за пътуване</h1>
-    <p class="mt-4 max-w-[52ch] text-lg text-stone-600 dark:text-stone-400">Фразите, които ще ти трябват от летището до ресторанта. Чуй ги, упражни ги с карти и тръгни спокойно.</p>
+<section class="relative overflow-hidden">
+  <div class="blob -top-20 right-0 size-80 bg-sky-300/40 dark:bg-sky-500/15"></div>
+  <div class="blob top-10 -left-24 size-72 bg-amber-200/50 dark:bg-amber-500/10"></div>
+  <div class="container-page relative py-12 md:py-16">
+    <span class="grid size-16 place-items-center rounded-2xl bg-sky-600 text-3xl text-white shadow-[0_4px_0_0_var(--color-sky-800)]"><i class="fa-solid fa-plane-departure" aria-hidden="true"></i></span>
+    <h1 class="mt-6 text-3xl font-black tracking-tight md:text-5xl">Английски за пътуване</h1>
+    <p class="mt-4 max-w-[52ch] text-lg font-semibold text-stone-600 dark:text-stone-400">Фразите, които ще ти трябват от летището до ресторанта. Чуй ги, упражни ги с карти и тръгни спокойно.</p>
   </div>
-  <img src="https://picsum.photos/seed/govori-airport-gate/900/600" alt="Пътник с куфар на летище" class="aspect-[3/2] w-full rounded-3xl object-cover" width="900" height="600">
 </section>
 <div class="container-page">
   {% include "vocabulary/_topic_grid.html" %}

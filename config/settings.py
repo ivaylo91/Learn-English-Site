@@ -116,6 +116,10 @@ STORAGES = {
     },
 }
 
+# Uploaded lesson audio. Move to Supabase Storage or S3 before production.
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 TAILWIND_CLI_SRC_CSS = "frontend/tailwind.css"
 TAILWIND_CLI_DIST_CSS = "css/tailwind.css"
 

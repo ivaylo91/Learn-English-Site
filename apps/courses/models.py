@@ -6,6 +6,7 @@ from django.db import models
 from django.urls import reverse
 
 from apps.accounts.models import CEFRLevel
+from apps.core.theme import LESSON_KINDS, LEVEL_COLORS, theme
 
 
 def normalize_answer(text):
@@ -34,6 +35,10 @@ class Level(models.Model):
     def get_absolute_url(self):
         return reverse("courses:level", args=[self.code.lower()])
 
+    @property
+    def theme(self):
+        return theme(LEVEL_COLORS.get(self.code))
+
 
 class Unit(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="units", verbose_name="ниво")
@@ -58,6 +63,7 @@ class Lesson(models.Model):
         VOCABULARY = "vocabulary", "Речник"
         CONVERSATION = "conversation", "Разговор"
         READING = "reading", "Четене"
+        LISTENING = "listening", "Слушане"
 
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="lessons", verbose_name="раздел")
     title = models.CharField("заглавие", max_length=120)
@@ -66,6 +72,14 @@ class Lesson(models.Model):
     kind = models.CharField("вид", max_length=20, choices=Kind.choices, default=Kind.GRAMMAR)
     summary = models.CharField("кратко описание", max_length=200, blank=True)
     theory = models.TextField("теория (HTML)", blank=True, help_text="Обяснение на български. Позволен е HTML.")
+    dialogue = models.TextField(
+        "диалог", blank=True,
+        help_text="За уроци по слушане. Всеки ред: Говорител | Английски текст | Превод на български",
+    )
+    audio = models.FileField(
+        "аудио файл", upload_to="lessons/audio/", blank=True,
+        help_text="По желание. Ако няма файл, диалогът се чете от гласа на браузъра.",
+    )
     order = models.PositiveSmallIntegerField("ред", default=0)
     minutes = models.PositiveSmallIntegerField("минути", default=5)
     xp_reward = models.PositiveSmallIntegerField("XP награда", default=10)
@@ -90,17 +104,41 @@ class Lesson(models.Model):
     def is_locked_for(self, user):
         return self.is_premium and not (user.is_authenticated and user.is_premium)
 
+    @property
+    def kind_theme(self):
+        color, icon = LESSON_KINDS.get(self.kind, ("teal", "fa-book"))
+        return {**theme(color), "icon": icon}
+
+    def dialogue_lines(self):
+        """Parse the dialogue field into [{speaker, who, en, bg}]; who is the speaker's index (0, 1, ...)."""
+        lines, speakers = [], []
+        for raw in self.dialogue.splitlines():
+            parts = [p.strip() for p in raw.split("|")]
+            if len(parts) >= 2 and parts[1]:
+                if parts[0] not in speakers:
+                    speakers.append(parts[0])
+                lines.append({
+                    "speaker": parts[0], "who": speakers.index(parts[0]),
+                    "en": parts[1], "bg": parts[2] if len(parts) > 2 else "",
+                })
+        return lines
+
 
 class Exercise(models.Model):
     class Type(models.TextChoices):
         CHOICE = "choice", "Избор на отговор"
         FILL = "fill", "Попълни празното"
         TRANSLATE = "translate", "Преведи"
+        DICTATION = "dictation", "Диктовка"
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="exercises", verbose_name="урок")
     type = models.CharField("тип", max_length=10, choices=Type.choices, default=Type.CHOICE)
     instruction = models.CharField("инструкция", max_length=200, blank=True)
     prompt = models.CharField("задача", max_length=300, help_text="За „Попълни“ използвайте ___ за празното място.")
+    audio_text = models.CharField(
+        "текст за слушане", max_length=300, blank=True,
+        help_text="Ако е попълнено, ученикът чува този текст. При „Диктовка“ това е и верният отговор.",
+    )
     answers = models.CharField(
         "верни отговори", max_length=300, blank=True,
         help_text="За „Попълни“ и „Преведи“. Няколко варианта се разделят с |",
@@ -119,7 +157,10 @@ class Exercise(models.Model):
     def accepted_answers(self):
         if self.type == self.Type.CHOICE:
             return [c.text for c in self.choices.all() if c.is_correct]
-        return [a.strip() for a in self.answers.split("|") if a.strip()]
+        answers = [a.strip() for a in self.answers.split("|") if a.strip()]
+        if not answers and self.type == self.Type.DICTATION and self.audio_text:
+            answers = [self.audio_text]
+        return answers
 
     def is_correct_answer(self, value):
         """Return True when value is a correct answer. Choices are checked by id."""

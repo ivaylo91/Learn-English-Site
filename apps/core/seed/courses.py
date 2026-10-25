@@ -15,6 +15,17 @@ def T(prompt, answers, explanation="", instruction="Преведи на англ
             "explanation": explanation}
 
 
+def L(prompt, audio, choices, correct, explanation="", instruction="Слушай и избери"):
+    """Listening choice: the learner hears `audio`, then answers `prompt`."""
+    return {**C(prompt, choices, correct, explanation, instruction), "audio": audio}
+
+
+def D(audio, answers="", explanation="", instruction="Диктовка"):
+    """Dictation: the learner hears `audio` and types it. Extra accepted variants go in answers."""
+    return {"type": "dictation", "instruction": instruction, "prompt": "Слушай и напиши изречението.",
+            "audio": audio, "answers": "|".join(a for a in [audio, answers] if a), "explanation": explanation}
+
+
 LEVELS = [
     {"code": "A1", "title": "Начинаещи", "order": 1,
      "summary": "Първите думи и изречения: поздрави, числа, глаголът to be.",

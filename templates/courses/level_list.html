@@ -2,29 +2,32 @@
 {% block title %}Курс по английски A1 до C2 | {{ SITE_NAME }}{% endblock %}
 {% block content %}
 <div class="container-page py-12 md:py-16">
-  <h1 class="text-3xl font-bold tracking-tight md:text-5xl">Курс по английски</h1>
-  <p class="mt-3 max-w-[60ch] text-lg text-stone-600 dark:text-stone-400">Избери ниво. Всяко ниво има раздели с кратки уроци и упражнения.</p>
-  <a href="{% url 'placement:test' %}" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-400"><i class="fa-solid fa-list-check" aria-hidden="true"></i>Не знаеш нивото си? Направи теста</a>
+  <h1 class="text-3xl font-black tracking-tight md:text-5xl">Курс по английски</h1>
+  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">Избери ниво. Всяко ниво има раздели с кратки уроци, слушане и упражнения.</p>
+  <div class="mt-6 flex flex-wrap gap-3">
+    <a href="{% url 'placement:test' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-list-check text-emerald-500" aria-hidden="true"></i>Не знаеш нивото си? Направи теста</a>
+    <a href="{% url 'courses:listening' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-headphones text-rose-500" aria-hidden="true"></i>Само уроци по слушане</a>
+  </div>
 
-  <ol class="mt-10 grid gap-4 md:grid-cols-2">
+  <ol class="mt-10 grid gap-5 md:grid-cols-2">
     {% for row in rows %}
       {% with level=row.level %}
       <li class="reveal" style="--i: {{ forloop.counter0 }}">
-        <a href="{{ level.get_absolute_url }}" class="card group flex h-full gap-5 p-6 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 dark:hover:border-brand-400 {% if user.level == level.code %}ring-2 ring-brand-600 dark:ring-brand-400{% endif %}">
-          <span class="grid size-16 shrink-0 place-items-center rounded-2xl bg-brand-100 text-2xl font-extrabold text-brand-800 dark:bg-brand-950 dark:text-brand-300">{{ level.code }}</span>
+        <a href="{{ level.get_absolute_url }}" class="card card-link wiggle group flex h-full gap-5 p-6 {{ level.theme.hover }} {% if user.level == level.code %}border-brand-400 dark:border-brand-500{% endif %}">
+          <span class="wiggle-target grid size-16 shrink-0 place-items-center rounded-2xl text-2xl font-black {{ level.theme.solid }}">{{ level.code }}</span>
           <span class="flex-1">
             <span class="flex flex-wrap items-center gap-2">
-              <span class="text-xl font-semibold">{{ level.title }}</span>
-              {% if user.level == level.code %}<span class="badge badge-brand">Твоето ниво</span>{% endif %}
+              <span class="text-xl font-black">{{ level.title }}</span>
+              {% if user.level == level.code %}<span class="badge badge-brand"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Твоето ниво</span>{% endif %}
             </span>
-            <span class="mt-1 block text-stone-600 dark:text-stone-400">{{ level.summary }}</span>
-            <span class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+            <span class="mt-1 block font-semibold text-stone-600 dark:text-stone-400">{{ level.summary }}</span>
+            <span class="mt-4 flex flex-wrap gap-2 text-sm">
               {% if level.lesson_count %}
-                <span><i class="fa-solid fa-layer-group mr-1" aria-hidden="true"></i>{{ level.unit_count }} {% if level.unit_count == 1 %}раздел{% else %}раздела{% endif %}</span>
-                <span><i class="fa-solid fa-book-open mr-1" aria-hidden="true"></i>{{ level.lesson_count }} {% if level.lesson_count == 1 %}урок{% else %}урока{% endif %}</span>
-                {% if user.is_authenticated %}<span><i class="fa-solid fa-circle-check mr-1" aria-hidden="true"></i>{{ row.done }} завършени</span>{% endif %}
+                <span class="badge {{ level.theme.soft }}"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>{{ level.unit_count }} {% if level.unit_count == 1 %}раздел{% else %}раздела{% endif %}</span>
+                <span class="badge {{ level.theme.soft }}"><i class="fa-solid fa-book-open" aria-hidden="true"></i>{{ level.lesson_count }} {% if level.lesson_count == 1 %}урок{% else %}урока{% endif %}</span>
+                {% if user.is_authenticated %}<span class="badge badge-muted"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ row.done }} завършени</span>{% endif %}
               {% else %}
-                <span><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>Уроците се подготвят</span>
+                <span class="badge badge-muted"><i class="fa-regular fa-clock" aria-hidden="true"></i>Уроците се подготвят</span>
               {% endif %}
             </span>
           </span>

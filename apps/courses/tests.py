@@ -107,3 +107,38 @@ class CompleteLessonTests(ContentMixin, TestCase):
         response = self.client.get(self.lesson.get_absolute_url())
         self.assertTemplateUsed(response, "courses/lesson_locked.html")
         self.assertEqual(self.post_json("courses:complete", {"answers": {}}).status_code, 404)
+
+
+class AudioLessonTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        level = Level.objects.create(code="A1", title="Начинаещи", summary="s", order=1)
+        unit = Unit.objects.create(level=level, title="U", slug="u", order=1)
+        cls.lesson = Lesson.objects.create(
+            unit=unit, title="Café", slug="cafe", kind=Lesson.Kind.LISTENING,
+            dialogue="Barista | Hi! | Здравейте!\nMaria | A tea, please. | Един чай.\nBarista | Sure.\nbroken line",
+        )
+        cls.dictation = Exercise.objects.create(
+            lesson=cls.lesson, type="dictation", prompt="Слушай.", audio_text="Have a nice day!"
+        )
+
+    def test_dictation_defaults_to_audio_text(self):
+        self.assertTrue(self.dictation.is_correct_answer("have a nice day"))
+        self.assertFalse(self.dictation.is_correct_answer("have a good day"))
+
+    def test_dialogue_lines(self):
+        lines = self.lesson.dialogue_lines()
+        self.assertEqual(len(lines), 3)
+        self.assertEqual([l["who"] for l in lines], [0, 1, 0])
+        self.assertEqual(lines[1], {"speaker": "Maria", "who": 1, "en": "A tea, please.", "bg": "Един чай."})
+        self.assertEqual(lines[2]["bg"], "")
+
+    def test_lesson_page_has_player_and_exercise_audio(self):
+        response = self.client.get(self.lesson.get_absolute_url())
+        self.assertContains(response, "data-dialogue-play")
+        self.assertEqual(response.context["exercises_json"][0]["audio"], "Have a nice day!")
+
+    def test_listening_page_lists_only_listening(self):
+        Lesson.objects.create(unit=self.lesson.unit, title="Grammar", slug="grammar")
+        response = self.client.get(reverse("courses:listening"))
+        self.assertEqual([l.slug for l in response.context["lessons"]], ["cafe"])

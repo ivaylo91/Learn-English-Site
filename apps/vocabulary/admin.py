@@ -10,7 +10,7 @@ class WordInline(admin.TabularInline):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ["title", "level", "is_travel", "is_premium", "order"]
+    list_display = ["title", "level", "color", "is_travel", "is_premium", "order"]
     list_filter = ["level", "is_travel", "is_premium"]
     prepopulated_fields = {"slug": ["title_en"]}
     inlines = [WordInline]

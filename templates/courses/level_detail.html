@@ -3,52 +3,37 @@
 {% block description %}{{ level.summary }}{% endblock %}
 {% block content %}
 <div class="container-page py-12 md:py-16">
-  <nav aria-label="Навигация" class="text-sm text-stone-500 dark:text-stone-400">
+  <nav aria-label="Навигация" class="text-sm font-semibold text-stone-500 dark:text-stone-400">
     <a href="{% url 'courses:levels' %}" class="hover:underline">Курс</a>
     <i class="fa-solid fa-chevron-right mx-2 text-xs" aria-hidden="true"></i>
     <span class="text-stone-800 dark:text-stone-200">{{ level.code }}</span>
   </nav>
 
-  <div class="mt-6 flex flex-wrap items-start gap-6">
-    <span class="grid size-20 place-items-center rounded-3xl bg-brand-700 text-3xl font-extrabold text-white dark:bg-brand-500 dark:text-stone-950">{{ level.code }}</span>
-    <div class="flex-1">
-      <h1 class="text-3xl font-bold tracking-tight md:text-4xl">{{ level.title }}</h1>
-      <p class="mt-2 max-w-[65ch] text-stone-600 dark:text-stone-400">{{ level.description|default:level.summary }}</p>
+  <div class="relative mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br p-6 text-white sm:p-10 {{ level.theme.glow }}">
+    <div class="blob -top-16 -right-10 size-64 bg-white/20"></div>
+    <div class="relative flex flex-wrap items-center gap-6">
+      <span class="grid size-20 -rotate-6 place-items-center rounded-3xl bg-white/25 text-3xl font-black">{{ level.code }}</span>
+      <div class="flex-1">
+        <h1 class="text-3xl font-black tracking-tight md:text-4xl">{{ level.title }}</h1>
+        <p class="mt-2 max-w-[65ch] font-semibold text-white/90">{{ level.description|default:level.summary }}</p>
+      </div>
     </div>
   </div>
 
   {% if units %}
-    <div class="mt-12 space-y-10">
+    <div class="mt-12 space-y-12">
       {% for unit in units %}
         <section aria-labelledby="unit-{{ unit.id }}">
           <div class="flex items-center gap-3">
-            <span class="grid size-10 place-items-center rounded-xl bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-200"><i class="fa-solid {{ unit.icon }}" aria-hidden="true"></i></span>
+            <span class="grid size-12 place-items-center rounded-2xl text-lg {{ level.theme.soft }}"><i class="fa-solid {{ unit.icon }}" aria-hidden="true"></i></span>
             <div>
-              <h2 id="unit-{{ unit.id }}" class="text-xl font-semibold">Раздел {{ forloop.counter }}: {{ unit.title }}</h2>
-              {% if unit.summary %}<p class="text-sm text-stone-600 dark:text-stone-400">{{ unit.summary }}</p>{% endif %}
+              <h2 id="unit-{{ unit.id }}" class="text-xl font-black">Раздел {{ forloop.counter }}: {{ unit.title }}</h2>
+              {% if unit.summary %}<p class="text-sm font-semibold text-stone-600 dark:text-stone-400">{{ unit.summary }}</p>{% endif %}
             </div>
           </div>
-          <ol class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ol class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {% for lesson in unit.lessons.all %}
-              <li>
-                <a href="{{ lesson.get_absolute_url }}" class="card group flex h-full flex-col p-5 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 dark:hover:border-brand-400">
-                  <span class="flex items-center justify-between gap-2">
-                    <span class="badge badge-muted">{{ lesson.get_kind_display }}</span>
-                    {% if lesson.id in done %}
-                      <span class="text-emerald-600 dark:text-emerald-400" title="Завършен"><i class="fa-solid fa-circle-check text-lg" aria-hidden="true"></i><span class="sr-only">Завършен</span></span>
-                    {% elif lesson.is_premium %}
-                      <span class="badge bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"><i class="fa-solid fa-crown" aria-hidden="true"></i>Премиум</span>
-                    {% endif %}
-                  </span>
-                  <span class="mt-3 font-semibold">{{ lesson.title }}</span>
-                  {% if lesson.title_en %}<span class="text-sm text-stone-500 dark:text-stone-400">{{ lesson.title_en }}</span>{% endif %}
-                  <span class="mt-auto flex gap-4 pt-4 text-xs text-stone-500 dark:text-stone-400">
-                    <span><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>{{ lesson.minutes }} мин</span>
-                    <span><i class="fa-solid fa-pen mr-1" aria-hidden="true"></i>{{ lesson.exercise_count }} упр.</span>
-                    <span><i class="fa-solid fa-bolt mr-1" aria-hidden="true"></i>{{ lesson.xp_reward }} XP</span>
-                  </span>
-                </a>
-              </li>
+              <li>{% include "courses/_lesson_card.html" %}</li>
             {% endfor %}
           </ol>
         </section>
@@ -56,9 +41,9 @@
     </div>
   {% else %}
     <div class="card mt-12 p-10 text-center">
-      <i class="fa-solid fa-person-digging text-4xl text-stone-400" aria-hidden="true"></i>
-      <h2 class="mt-4 text-xl font-semibold">Уроците за {{ level.code }} се подготвят</h2>
-      <p class="mx-auto mt-2 max-w-[50ch] text-stone-600 dark:text-stone-400">Дотогава затвърди по-ниските нива или упражнявай думи в речника.</p>
+      <span class="mx-auto grid size-16 place-items-center rounded-2xl text-2xl {{ level.theme.soft }}"><i class="fa-solid fa-person-digging" aria-hidden="true"></i></span>
+      <h2 class="mt-4 text-xl font-black">Уроците за {{ level.code }} се подготвят</h2>
+      <p class="mx-auto mt-2 max-w-[50ch] font-semibold text-stone-600 dark:text-stone-400">Дотогава затвърди по-ниските нива или упражнявай думи в речника.</p>
       <div class="mt-6 flex flex-wrap justify-center gap-3">
         <a href="{% url 'courses:levels' %}" class="btn btn-primary">Всички нива</a>
         <a href="{% url 'vocabulary:topics' %}" class="btn btn-secondary">Речник</a>

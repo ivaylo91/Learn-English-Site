@@ -45,12 +45,24 @@ def level_detail(request, code):
     )
 
 
+def listening(request):
+    lessons = (
+        Lesson.objects.filter(is_published=True, kind=Lesson.Kind.LISTENING)
+        .select_related("unit__level")
+        .annotate(exercise_count=Count("exercises"))
+    )
+    return render(
+        request, "courses/listening.html", {"lessons": lessons, "done": completed_lesson_ids(request.user)}
+    )
+
+
 def serialize_exercise(exercise):
     data = {
         "id": exercise.id,
         "type": exercise.type,
         "instruction": exercise.instruction or exercise.get_type_display(),
         "prompt": exercise.prompt,
+        "audio": exercise.audio_text,
     }
     if exercise.type == Exercise.Type.CHOICE:
         data["choices"] = [{"id": c.id, "text": c.text} for c in exercise.choices.all()]
@@ -81,6 +93,7 @@ def lesson_detail(request, slug):
     context = {
         "lesson": lesson,
         "exercises_json": [serialize_exercise(e) for e in exercises],
+        "dialogue": lesson.dialogue_lines(),
         "exercise_count": len(exercises),
         "next_lesson": next_lesson,
         "progress": progress,

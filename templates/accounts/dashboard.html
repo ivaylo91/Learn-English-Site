@@ -5,7 +5,7 @@
 <div class="container-page py-10 md:py-14">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Здравей, {{ user.name }}!</h1>
+      <h1 class="text-3xl font-black tracking-tight md:text-4xl">Здравей, {{ user.name }}! <i class="fa-solid fa-hand-sparkles text-amber-400" aria-hidden="true"></i></h1>
       <p class="mt-2 text-stone-600 dark:text-stone-400">
         {% if user.level %}Твоето ниво: <strong class="text-stone-900 dark:text-white">{{ user.get_level_display }}</strong>{% else %}Още не знаем нивото ти. <a class="font-semibold text-brand-700 hover:underline dark:text-brand-400" href="{% url 'placement:test' %}">Направи теста</a>{% endif %}
       </p>
@@ -14,8 +14,8 @@
   </div>
 
   <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card flex items-center gap-4 p-5">
-      <span class="grid size-12 place-items-center rounded-xl bg-orange-100 text-xl text-orange-600 dark:bg-orange-950 dark:text-orange-400"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+    <div class="card flex items-center gap-4 border-orange-200 bg-orange-50 p-5 dark:border-orange-500/30 dark:bg-orange-500/10">
+      <span class="grid size-12 place-items-center rounded-2xl bg-orange-500 text-xl text-white"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
       <div>
         <p class="text-2xl font-bold">{{ user.current_streak }} {% if user.current_streak == 1 %}ден{% else %}дни{% endif %}</p>
         <p class="text-sm text-stone-600 dark:text-stone-400">поредица (рекорд {{ user.longest_streak }})</p>
@@ -27,19 +27,19 @@
         <p class="text-sm font-semibold">{{ xp_today }} / {{ user.daily_goal_xp }} XP</p>
       </div>
       <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" role="progressbar" aria-valuenow="{{ goal_percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Днешна цел">
-        <div class="h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width: {{ goal_percent }}%"></div>
+        <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-brand-600" style="width: {{ goal_percent }}%"></div>
       </div>
       <p class="mt-2 text-sm text-stone-600 dark:text-stone-400">{% if goal_percent >= 100 %}Целта за днес е изпълнена!{% else %}Един урок на ден пази серията жива.{% endif %}</p>
     </div>
-    <div class="card flex items-center gap-4 p-5">
-      <span class="grid size-12 place-items-center rounded-xl bg-brand-100 text-xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+    <div class="card flex items-center gap-4 border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+      <span class="grid size-12 place-items-center rounded-2xl bg-amber-400 text-xl text-amber-950"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
       <div>
         <p class="text-2xl font-bold">{{ user.xp|intcomma }} XP</p>
         <p class="text-sm text-stone-600 dark:text-stone-400">общо точки опит</p>
       </div>
     </div>
-    <div class="card flex items-center gap-4 p-5">
-      <span class="grid size-12 place-items-center rounded-xl bg-stone-100 text-xl text-stone-700 dark:bg-stone-800 dark:text-stone-200"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+    <div class="card flex items-center gap-4 border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+      <span class="grid size-12 place-items-center rounded-2xl bg-emerald-600 text-xl text-white"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
       <div>
         <p class="text-2xl font-bold">{{ completed_count }}</p>
         <p class="text-sm text-stone-600 dark:text-stone-400">{% if completed_count == 1 %}завършен урок{% else %}завършени урока{% endif %}</p>
@@ -50,15 +50,17 @@
   <div class="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
     <div class="space-y-6">
       {% if next_lesson %}
-        <a href="{{ next_lesson.get_absolute_url }}" class="group block overflow-hidden rounded-2xl bg-brand-800 p-6 text-white transition-transform duration-200 hover:-translate-y-0.5 sm:p-8 dark:bg-brand-900">
-          <p class="text-sm font-medium text-brand-100">Следващ урок: {{ next_lesson.unit.level.code }}, {{ next_lesson.unit.title }}</p>
-          <h2 class="mt-2 text-2xl font-bold sm:text-3xl">{{ next_lesson.title }}</h2>
-          {% if next_lesson.summary %}<p class="mt-2 max-w-[55ch] text-brand-50/90">{{ next_lesson.summary }}</p>{% endif %}
-          <div class="mt-6 flex flex-wrap items-center gap-4">
-            <span class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-900 transition-transform group-active:scale-[0.98]">
+        <a href="{{ next_lesson.get_absolute_url }}" class="group relative block overflow-hidden rounded-[2rem] bg-gradient-to-br p-6 text-white transition-transform duration-200 hover:-translate-y-1 sm:p-8 {{ next_lesson.unit.level.theme.glow }}">
+          <span class="blob -top-12 -right-12 size-52 bg-white/20"></span>
+          <span class="absolute top-6 right-6 hidden size-16 rotate-6 place-items-center rounded-3xl bg-white/20 text-3xl sm:grid"><i class="fa-solid {{ next_lesson.kind_theme.icon }}" aria-hidden="true"></i></span>
+          <p class="relative text-sm font-bold text-white/85">Следващ урок: {{ next_lesson.unit.level.code }}, {{ next_lesson.unit.title }}</p>
+          <h2 class="relative mt-2 max-w-[80%] text-2xl font-black sm:text-3xl">{{ next_lesson.title }}</h2>
+          {% if next_lesson.summary %}<p class="relative mt-2 max-w-[55ch] font-semibold text-white/90">{{ next_lesson.summary }}</p>{% endif %}
+          <div class="relative mt-6 flex flex-wrap items-center gap-4">
+            <span class="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-stone-900 shadow-[0_4px_0_0_rgb(0_0_0/0.15)] transition-transform group-active:translate-y-[3px]">
               Започни<i class="fa-solid fa-play" aria-hidden="true"></i>
             </span>
-            <span class="text-sm text-brand-100"><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>{{ next_lesson.minutes }} мин, +{{ next_lesson.xp_reward }} XP</span>
+            <span class="text-sm font-bold text-white/90"><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>{{ next_lesson.minutes }} мин, +{{ next_lesson.xp_reward }} XP</span>
           </div>
         </a>
       {% else %}
@@ -76,11 +78,11 @@
           {% for row in level_rows %}
             <li>
               <a href="{{ row.level.get_absolute_url }}" class="flex items-center gap-4 rounded-lg hover:opacity-80">
-                <span class="w-8 font-bold text-brand-700 dark:text-brand-400">{{ row.level.code }}</span>
+                <span class="grid size-9 place-items-center rounded-xl text-sm font-black {{ row.level.theme.solid }}">{{ row.level.code }}</span>
                 <span class="flex-1">
                   <span class="flex justify-between text-sm"><span class="font-medium">{{ row.level.title }}</span><span class="text-stone-500 dark:text-stone-400">{{ row.done }}/{{ row.total }}</span></span>
                   <span class="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
-                    <span class="block h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width: {% if row.total %}{% widthratio row.done row.total 100 %}{% else %}0{% endif %}%"></span>
+                    <span class="block h-full rounded-full {{ row.level.theme.bar }}" style="width: {% if row.total %}{% widthratio row.done row.total 100 %}{% else %}0{% endif %}%"></span>
                   </span>
                 </span>
               </a>
@@ -95,7 +97,7 @@
         <h2 class="text-lg font-semibold">Фрази за пътуване</h2>
         <ul class="mt-4 grid grid-cols-2 gap-2">
           {% for topic in travel_topics %}
-            <li><a href="{{ topic.get_absolute_url }}" class="flex items-center gap-2 rounded-xl bg-stone-100 px-3 py-2.5 text-sm font-medium hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700"><i class="fa-solid {{ topic.icon }} text-brand-700 dark:text-brand-400" aria-hidden="true"></i>{{ topic.title }}</a></li>
+            <li><a href="{{ topic.get_absolute_url }}" class="flex items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5 {{ topic.theme.soft }}"><i class="fa-solid {{ topic.icon }}" aria-hidden="true"></i>{{ topic.title }}</a></li>
           {% endfor %}
         </ul>
         <a href="{% url 'vocabulary:travel' %}" class="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-400">Всички теми</a>

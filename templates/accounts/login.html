@@ -1,14 +1,17 @@
 {% extends "accounts/auth_base.html" %}
 {% block title %}Вход | {{ SITE_NAME }}{% endblock %}
+{% block side_title %}Радваме се, че се върна!{% endblock %}
 {% block auth %}
-  <h1 class="text-3xl font-bold tracking-tight">Здравей отново</h1>
+  <span class="grid size-14 place-items-center rounded-2xl bg-sky-100 text-2xl text-sky-600 dark:bg-sky-500/15 dark:text-sky-300"><i class="fa-solid fa-hand-sparkles" aria-hidden="true"></i></span>
+  <h1 class="mt-5 text-3xl font-black tracking-tight">Здравей отново</h1>
   <p class="mt-2 text-stone-600 dark:text-stone-400">Влез, за да продължиш оттам, докъдето стигна.</p>
   <form method="post" class="mt-8 space-y-5" novalidate>
     {% csrf_token %}
     {% include "partials/form_errors.html" %}
-    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+    {% include "partials/field.html" with field=form.username icon="fa-envelope" %}
+    {% include "partials/field.html" with field=form.password icon="fa-lock" password=True %}
     <input type="hidden" name="next" value="{{ next }}">
-    <button class="btn btn-primary w-full text-base">Вход</button>
+    <button class="btn btn-primary w-full text-base">Вход<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
   </form>
-  <p class="mt-6 text-sm text-stone-600 dark:text-stone-400">Нямаш профил? <a href="{% url 'accounts:signup' %}" class="font-semibold text-brand-700 hover:underline dark:text-brand-400">Регистрирай се безплатно</a></p>
+  <p class="mt-6 text-sm text-stone-600 dark:text-stone-400">Нямаш профил? <a href="{% url 'accounts:signup' %}" class="font-bold text-brand-700 hover:underline dark:text-brand-400">Регистрирай се безплатно</a></p>
 {% endblock %}

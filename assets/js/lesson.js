@@ -81,8 +81,14 @@
     renderPrompt(ex);
     el.area.innerHTML = "";
 
-    // Read the English prompt aloud (not for Bulgarian translate prompts).
-    el.speakPrompt.hidden = !(window.govori && window.govori.canSpeak) || ex.type === "translate";
+    // Read the English prompt aloud (not for Bulgarian prompts or audio exercises).
+    var canSpeak = !!(window.govori && window.govori.canSpeak);
+    el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || !!ex.audio;
+
+    if (ex.audio) {
+      el.area.appendChild(audioBar(ex.audio, canSpeak));
+      if (canSpeak) setTimeout(function () { window.govori.speak(ex.audio); }, 250);
+    }
 
     if (ex.type === "choice") {
       var list = document.createElement("div");
@@ -110,15 +116,19 @@
       });
       el.area.appendChild(list);
     } else {
-      var input = document.createElement(ex.type === "translate" ? "textarea" : "input");
+      var long = ex.type === "translate" || ex.type === "dictation";
+      var input = document.createElement(long ? "textarea" : "input");
       input.className = "field-input text-lg";
       input.setAttribute("autocomplete", "off");
       input.setAttribute("autocapitalize", "off");
       input.setAttribute("spellcheck", "false");
       input.setAttribute("lang", "en");
       input.setAttribute("aria-label", "Твоят отговор");
-      input.placeholder = ex.type === "translate" ? "Напиши превода на английски" : "Напиши липсващата дума";
-      if (ex.type === "translate") input.rows = 2;
+      input.placeholder = {
+        translate: "Напиши превода на английски",
+        dictation: "Напиши каквото чуваш",
+      }[ex.type] || "Напиши липсващата дума";
+      if (long) input.rows = 2;
       input.addEventListener("input", function () { setCurrent(input.value); });
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -130,6 +140,24 @@
       el.area.appendChild(input);
       setTimeout(function () { input.focus(); }, 50);
     }
+  }
+
+  // Big play button plus a slow replay, for exercises with audio.
+  function audioBar(text, canSpeak) {
+    var bar = document.createElement("div");
+    bar.className = "mb-5 flex items-center gap-3 rounded-2xl bg-rose-50 p-3 dark:bg-rose-500/10";
+    if (!canSpeak) {
+      bar.innerHTML = '<p class="text-sm font-semibold">Браузърът ти не поддържа звук. Текстът е: <strong lang="en"></strong></p>';
+      bar.querySelector("strong").textContent = text;
+      return bar;
+    }
+    bar.innerHTML =
+      '<button type="button" class="grid size-14 place-items-center rounded-full bg-rose-500 text-xl text-white shadow-[0_4px_0_0_var(--color-rose-700)] active:translate-y-[3px] active:shadow-[0_1px_0_0_var(--color-rose-700)]" data-play aria-label="Чуй отново"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>' +
+      '<button type="button" class="grid size-11 place-items-center rounded-full bg-white text-rose-600 dark:bg-stone-900 dark:text-rose-300" data-play-slow aria-label="Чуй бавно"><i class="fa-solid fa-person-walking" aria-hidden="true"></i></button>' +
+      '<span class="text-sm font-bold text-rose-800 dark:text-rose-200">Натисни, за да чуеш отново</span>';
+    bar.querySelector("[data-play]").addEventListener("click", function () { window.govori.speak(text); });
+    bar.querySelector("[data-play-slow]").addEventListener("click", function () { window.govori.speak(text, 0.6); });
+    return bar;
   }
 
   function showFeedback(res) {
@@ -168,7 +196,7 @@
           input.readOnly = true;
           input.classList.add(res.correct ? "!border-emerald-600" : "!border-red-600");
         }
-        if (res.correct && window.govori && ex.type !== "translate") {
+        if (res.correct && window.govori && ex.type !== "translate" && !ex.audio) {
           // Speak the completed sentence for reinforcement.
           var answerText = ex.type === "choice"
             ? (ex.choices.find(function (c) { return String(c.id) === String(res.correct_choice); }) || {}).text

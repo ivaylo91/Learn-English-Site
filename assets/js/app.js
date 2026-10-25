@@ -70,6 +70,20 @@
     document.querySelectorAll("[data-speak]").forEach(function (b) { b.hidden = true; });
   }
 
+  // Show / hide password
+  document.querySelectorAll("[data-password-toggle]").forEach(function (btn) {
+    var input = document.getElementById(btn.getAttribute("data-password-toggle"));
+    if (!input) return;
+    btn.addEventListener("click", function () {
+      var show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.setAttribute("aria-pressed", String(show));
+      btn.setAttribute("aria-label", show ? "Скрий паролата" : "Покажи паролата");
+      btn.querySelector("[data-eye]").hidden = show;
+      btn.querySelector("[data-eye-off]").hidden = !show;
+    });
+  });
+
   // Landing page mini quiz
   var demo = document.querySelector("[data-demo-quiz]");
   if (demo) {
