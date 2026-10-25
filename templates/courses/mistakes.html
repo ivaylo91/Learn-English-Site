@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Поправи грешките | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container-page max-w-3xl py-10 md:py-14">
+  <span class="grid size-16 place-items-center rounded-2xl bg-red-500 text-3xl text-white shadow-[0_4px_0_0_var(--color-red-700)]"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+  <h1 class="mt-6 text-3xl font-black tracking-tight md:text-4xl">Поправи грешките</h1>
+  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">
+    Тук се събират задачите, в които си сгрешил/а. Когато отговориш вярно, грешката се маха от списъка.
+  </p>
+
+  <div class="mt-8 grid gap-4 sm:grid-cols-2">
+    <div class="card border-red-200 bg-red-50 p-5 dark:border-red-500/30 dark:bg-red-500/10">
+      <p class="text-3xl font-black">{{ open_count }}</p>
+      <p class="font-bold text-stone-600 dark:text-stone-400">чакат поправка</p>
+    </div>
+    <div class="card border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+      <p class="text-3xl font-black">{{ fixed_count }}</p>
+      <p class="font-bold text-stone-600 dark:text-stone-400">вече поправени</p>
+    </div>
+  </div>
+
+  {% if exercises_json %}
+    {% if by_lesson %}
+      <section class="mt-8" aria-labelledby="by-lesson">
+        <h2 id="by-lesson" class="text-lg font-black">Къде грешиш най-често</h2>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {% for row in by_lesson %}
+            <li><a href="{% url 'courses:lesson' row.exercise__lesson__slug %}" class="inline-flex items-center gap-2 rounded-full border-2 border-stone-200 bg-white px-4 py-2 text-sm font-bold hover:border-red-300 dark:border-stone-800 dark:bg-stone-900">{{ row.exercise__lesson__title }}<span class="badge bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300">{{ row.n }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+    {% include "courses/_player.html" with intro_title="Упражнение по грешките" %}
+  {% else %}
+    <div class="card mt-10 p-10 text-center">
+      <span class="mx-auto grid size-16 place-items-center rounded-2xl bg-emerald-100 text-2xl text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+      <h2 class="mt-4 text-xl font-black">Няма грешки за поправяне</h2>
+      <p class="mx-auto mt-2 max-w-[45ch] font-semibold text-stone-600 dark:text-stone-400">Продължавай с уроците. Ако сгрешиш някъде, задачата ще се появи тук.</p>
+      <a href="{% url 'courses:levels' %}" class="btn btn-primary mt-6">Към курса</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}{% if exercises_json %}<script src="{% static 'js/lesson.js' %}" defer></script>{% endif %}{% endblock %}

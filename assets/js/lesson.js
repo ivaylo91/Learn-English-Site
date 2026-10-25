@@ -5,7 +5,9 @@
   var dataEl = document.getElementById("exercises-data");
   if (!root || !dataEl) return;
 
-  var exercises = JSON.parse(dataEl.textContent);
+  // Original set from the server; `exercises` is the live queue (missed items are re-queued once).
+  var original = JSON.parse(dataEl.textContent);
+  var exercises = original.slice();
   var csrf = root.querySelector("input[name=csrfmiddlewaretoken]").value;
   var checkUrl = root.dataset.checkUrl;
   var completeUrl = root.dataset.completeUrl;
@@ -19,6 +21,7 @@
     progress: root.querySelector("[data-progress]"),
     counter: root.querySelector("[data-counter]"),
     instruction: root.querySelector("[data-instruction]"),
+    tag: root.querySelector("[data-tag]"),
     prompt: root.querySelector("[data-prompt]"),
     area: root.querySelector("[data-answer-area]"),
     feedback: root.querySelector("[data-feedback]"),
@@ -78,6 +81,16 @@
     el.counter.textContent = index + 1 + " / " + exercises.length;
     el.progress.style.width = (index / exercises.length) * 100 + "%";
     el.instruction.textContent = ex.instruction;
+    el.tag.innerHTML = "";
+    if (ex.retry || ex.review) {
+      var tag = document.createElement("span");
+      tag.className = "badge " + (ex.retry
+        ? "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-200"
+        : "bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-200");
+      tag.innerHTML = '<i class="fa-solid ' + (ex.retry ? "fa-rotate-left" : "fa-clock-rotate-left") + '" aria-hidden="true"></i><span></span>';
+      tag.querySelector("span").textContent = ex.retry ? "Опитай пак" : "Преговор: " + ex.review;
+      el.tag.appendChild(tag);
+    }
     renderPrompt(ex);
     el.area.innerHTML = "";
 
@@ -231,7 +244,9 @@
     el.check.disabled = true;
     post(checkUrl, { exercise: ex.id, answer: current })
       .then(function (res) {
-        answers[ex.id] = current;
+        // Score uses the first attempt; a missed item comes back once at the end.
+        if (!ex.retry) answers[ex.id] = current;
+        if (!res.correct && !ex.retry) exercises.push(Object.assign({}, ex, { retry: true }));
         if (ex.type === "choice") {
           el.area.querySelectorAll(".option").forEach(function (o) {
             o.classList.remove("is-selected");
@@ -340,6 +355,7 @@
   function start() {
     index = 0;
     answers = {};
+    exercises = original.slice();
     show("exercise");
     renderExercise();
     screens.exercise.scrollIntoView({ behavior: "smooth", block: "start" });

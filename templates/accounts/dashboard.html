@@ -122,6 +122,17 @@
         <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
       </a>
 
+      {% if open_mistakes %}
+        <a href="{% url 'courses:mistakes' %}" class="card card-link flex items-center gap-4 border-red-200 bg-red-50 p-5 hover:border-red-400 dark:border-red-500/30 dark:bg-red-500/10">
+          <span class="grid size-14 shrink-0 place-items-center rounded-2xl bg-red-500 text-2xl text-white"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+          <span class="flex-1">
+            <span class="block text-lg font-black">Поправи грешките</span>
+            <span class="text-sm font-bold text-stone-600 dark:text-stone-400">{{ open_mistakes }} {% if open_mistakes == 1 %}задача чака{% else %}задачи чакат{% endif %} втори опит</span>
+          </span>
+          <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+        </a>
+      {% endif %}
+
       <section class="card p-6">
         <h2 class="text-lg font-semibold">Фрази за пътуване</h2>
         <ul class="mt-4 grid grid-cols-2 gap-2">

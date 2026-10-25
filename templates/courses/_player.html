@@ -1,0 +1,59 @@
+{# Exercise player. Needs: exercises_json, complete_url, intro_title, intro_text, done_url, done_label. #}
+<section class="card mt-12 p-5 sm:p-8" data-lesson-player
+         data-check-url="{% url 'courses:check_any' %}"
+         data-complete-url="{{ complete_url }}"
+         data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
+         aria-live="polite">
+  {% csrf_token %}
+
+  {# Start screen #}
+  <div data-screen="start" class="text-center">
+    <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-100 text-2xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>
+    <h2 class="mt-4 text-2xl font-black">{{ intro_title }}</h2>
+    <p class="mt-2 font-semibold text-stone-600 dark:text-stone-400">{{ intro_text }}</p>
+    <button type="button" class="btn btn-primary mt-6 text-base" data-action="start">Започни<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+  </div>
+
+  {# Exercise screen #}
+  <div data-screen="exercise" hidden>
+    <div class="flex items-center gap-4">
+      <div class="h-2.5 flex-1 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+        <div class="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out-soft dark:bg-brand-400" style="width: 0%" data-progress></div>
+      </div>
+      <span class="text-sm font-bold text-stone-500 tabular-nums dark:text-stone-400" data-counter></span>
+    </div>
+    <p class="mt-6 min-h-6" data-tag></p>
+    <p class="mt-2 text-sm font-bold text-stone-600 dark:text-stone-400" data-instruction></p>
+    <div class="mt-2 flex items-start gap-3">
+      <p class="flex-1 text-2xl leading-snug font-bold" data-prompt></p>
+      <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700" data-action="speak-prompt" aria-label="Чуй изречението" hidden>
+        <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="mt-6" data-answer-area></div>
+    <div class="mt-5 hidden rounded-xl px-4 py-3" data-feedback></div>
+    <div class="mt-6 flex justify-end">
+      <button type="button" class="btn btn-primary min-w-36 text-base" data-action="check" disabled>Провери</button>
+      <button type="button" class="btn btn-primary min-w-36 text-base" data-action="next" hidden>Напред<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  {# Result screen #}
+  <div data-screen="result" class="text-center" hidden>
+    <span class="mx-auto grid size-16 place-items-center rounded-2xl text-3xl" data-result-icon></span>
+    <h2 class="mt-4 text-2xl font-black" data-result-title></h2>
+    <p class="mt-2 text-4xl font-black tabular-nums" data-result-score></p>
+    <p class="mt-2 font-semibold text-stone-600 dark:text-stone-400" data-result-text></p>
+    <div class="mt-5 flex flex-wrap justify-center gap-3 text-sm font-semibold" data-result-stats></div>
+    {% if not user.is_authenticated %}
+      <div class="mx-auto mt-6 max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-950 dark:bg-brand-950/60 dark:text-brand-100">
+        <a href="{% url 'accounts:signup' %}" class="font-semibold underline">Създай безплатен профил</a>, за да пазиш прогреса, точките и грешките си за преговор.
+      </div>
+    {% endif %}
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <button type="button" class="btn btn-secondary" data-action="restart"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Опитай пак</button>
+      <a href="{{ done_url }}" class="btn btn-primary">{{ done_label }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </div>
+</section>
+{{ exercises_json|json_script:"exercises-data" }}

@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from apps.courses.models import Lesson, LessonProgress, Level
+from apps.courses.models import Lesson, LessonProgress, Level, UserMistake
 from apps.vocabulary.models import SavedWord, Topic
 
 from .achievements import achievements_for, week_start, weekly_leaderboard
@@ -70,6 +70,7 @@ def dashboard(request):
         "travel_topics": Topic.objects.filter(is_travel=True)[:4],
         "due_words": SavedWord.objects.filter(user=user, due_date__lte=timezone.localdate()).count(),
         "deck_size": SavedWord.objects.filter(user=user).count(),
+        "open_mistakes": UserMistake.objects.filter(user=user, resolved_at__isnull=True).count(),
         "achievements": achievements_for(user),
     }
     context["earned_count"] = sum(1 for a in context["achievements"] if a["earned"])

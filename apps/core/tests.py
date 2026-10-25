@@ -63,6 +63,17 @@ class PageSmokeTests(TestCase):
         call_command("seed_content", stdout=StringIO())
         self.assertEqual(SavedWord.objects.filter(user=user).count(), 1)
 
+    def test_seed_keeps_mistakes(self):
+        from apps.courses.models import Exercise, UserMistake
+
+        user = User.objects.create_user("mist@example.com", "pass")
+        UserMistake.objects.create(user=user, exercise=Exercise.objects.first())
+        call_command("seed_content", stdout=StringIO())
+        self.assertEqual(UserMistake.objects.filter(user=user).count(), 1)
+
+    def test_lessons_show_common_mistakes(self):
+        self.assertContains(self.client.get("/courses/lesson/b1-first-conditional/"), "If it will rain")
+
     def test_seed_is_idempotent(self):
         before = (Lesson.objects.count(), Topic.objects.count(), PlacementQuestion.objects.count())
         call_command("seed_content", stdout=StringIO())

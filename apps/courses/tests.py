@@ -2,6 +2,7 @@ import json
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import User
 
@@ -163,3 +164,78 @@ class WordOrderTests(TestCase):
     def test_grading(self):
         self.assertTrue(self.exercise.is_correct_answer("They are not at home"))
         self.assertFalse(self.exercise.is_correct_answer("Are they not at home"))
+
+
+class LearningLoopTests(ContentMixin, TestCase):
+    """Mistakes deck, warm-up review questions and common-mistake cards."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("loop@example.com", "pass")
+        self.client.force_login(self.user)
+
+    def check(self, exercise, answer):
+        return self.client.post(
+            reverse("courses:check_any"), data=json.dumps({"exercise": exercise.id, "answer": answer}),
+            content_type="application/json",
+        ).json()
+
+    def test_wrong_answer_is_recorded_and_resolved_later(self):
+        from .models import UserMistake
+
+        self.check(self.choice_ex, str(self.wrong.id))
+        self.check(self.choice_ex, str(self.wrong.id))
+        mistake = UserMistake.objects.get(user=self.user, exercise=self.choice_ex)
+        self.assertEqual((mistake.wrong_count, mistake.resolved_at), (2, None))
+        self.check(self.choice_ex, str(self.right.id))
+        mistake.refresh_from_db()
+        self.assertIsNotNone(mistake.resolved_at)
+
+    def test_anonymous_check_records_nothing(self):
+        from .models import UserMistake
+
+        self.client.logout()
+        self.assertFalse(self.check(self.choice_ex, str(self.wrong.id))["correct"])
+        self.assertFalse(UserMistake.objects.exists())
+
+    def test_premium_exercise_not_checkable(self):
+        self.lesson.is_premium = True
+        self.lesson.save()
+        response = self.client.post(
+            reverse("courses:check_any"), data=json.dumps({"exercise": self.choice_ex.id, "answer": "1"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_mistakes_practice_awards_xp_once(self):
+        self.check(self.fill_ex, "is")  # wrong
+        page = self.client.get(reverse("courses:mistakes"))
+        self.assertEqual([e["id"] for e in page.context["exercises_json"]], [self.fill_ex.id])
+        self.check(self.fill_ex, "are")  # fixed
+        payload = json.dumps({"answers": {str(self.fill_ex.id): "are"}})
+        url = reverse("courses:mistakes_complete")
+        first = self.client.post(url, data=payload, content_type="application/json").json()
+        again = self.client.post(url, data=payload, content_type="application/json").json()
+        self.assertEqual((first["xp"], again["xp"]), (2, 0))
+
+    def test_review_questions_come_from_finished_lessons(self):
+        other = Lesson.objects.create(unit=self.lesson.unit, title="Other", slug="other")
+        Exercise.objects.create(lesson=other, type="fill", prompt="x ___", answers="y")
+        LessonProgress.objects.create(user=self.user, lesson=self.lesson, completed_at=timezone.now())
+        data = self.client.get(other.get_absolute_url()).context["exercises_json"]
+        review = [e for e in data if e.get("review")]
+        self.assertEqual(len(review), 2)
+        self.assertTrue(all(e["review"] == "To be" for e in review))
+        # Review answers don't change the lesson score.
+        result = self.client.post(
+            reverse("courses:complete", args=["other"]),
+            data=json.dumps({"answers": {str(self.choice_ex.id): "nope", str(other.exercises.get().id): "y"}}),
+            content_type="application/json",
+        ).json()
+        self.assertEqual((result["score"], result["total"]), (100, 1))
+
+    def test_mistake_cards(self):
+        self.lesson.mistakes = "He is doctor. | He is a doctor. | Нужен е член.\nbroken\nA | B"
+        self.assertEqual(self.lesson.mistake_cards(), [
+            {"wrong": "He is doctor.", "right": "He is a doctor.", "why": "Нужен е член."},
+            {"wrong": "A", "right": "B", "why": ""},
+        ])

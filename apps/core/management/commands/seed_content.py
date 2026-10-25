@@ -3,7 +3,7 @@ import random
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.core.seed import courses, courses_advanced, listening, placement, vocabulary
+from apps.core.seed import courses, courses_advanced, listening, mistakes, placement, pronunciation, vocabulary
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
 from apps.placement.models import PlacementChoice, PlacementQuestion
 from apps.vocabulary.models import Topic, Word
@@ -38,7 +38,7 @@ class Command(BaseCommand):
             level, _ = Level.objects.update_or_create(code=data["code"], defaults={k: v for k, v in data.items() if k != "code"})
             levels[level.code] = level
 
-        units = courses.UNITS + courses_advanced.UNITS + listening.UNITS
+        units = courses.UNITS + courses_advanced.UNITS + pronunciation.UNITS + listening.UNITS
         lesson_count = 0
         for u in units:
             unit, _ = Unit.objects.update_or_create(
@@ -52,21 +52,24 @@ class Command(BaseCommand):
                     defaults={"unit": unit, "title": l["title"], "title_en": l.get("title_en", ""), "kind": l["kind"],
                               "summary": l.get("summary", ""), "theory": l["theory"].strip(), "order": order,
                               "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
-                              "dialogue": l.get("dialogue", "")},
+                              "dialogue": l.get("dialogue", ""),
+                              "mistakes": "\n".join(" | ".join(m) for m in mistakes.MISTAKES.get(l["slug"], []))},
                 )
-                # Exercises are replaced wholesale so edits in the seed file take effect.
-                lesson.exercises.all().delete()
+                # Exercises are updated in place by position, so learners' mistakes linked to them survive.
                 for ex_order, e in enumerate(l["exercises"], start=1):
-                    exercise = Exercise.objects.create(
-                        lesson=lesson, type=e["type"], instruction=e["instruction"], prompt=e["prompt"],
-                        audio_text=e.get("audio", ""), answers=e.get("answers", ""),
-                        explanation=e.get("explanation", ""), order=ex_order,
+                    exercise, _ = Exercise.objects.update_or_create(
+                        lesson=lesson, order=ex_order,
+                        defaults={"type": e["type"], "instruction": e["instruction"], "prompt": e["prompt"],
+                                  "audio_text": e.get("audio", ""), "answers": e.get("answers", ""),
+                                  "explanation": e.get("explanation", "")},
                     )
+                    exercise.choices.all().delete()
                     if e.get("choices"):
                         Choice.objects.bulk_create(
                             Choice(exercise=exercise, text=text, is_correct=ok)
                             for text, ok in shuffled_choices(e["prompt"] + e.get("audio", ""), e["choices"], e["correct"])
                         )
+                lesson.exercises.filter(order__gt=len(l["exercises"])).delete()
                 lesson_count += 1
         self.stdout.write(f"  {len(levels)} levels, {len(units)} units, {lesson_count} lessons")
 

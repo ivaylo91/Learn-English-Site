@@ -42,6 +42,7 @@
             <p class="truncate px-3 py-2 text-xs text-stone-500 dark:text-stone-400">{{ user.email }}</p>
             <a href="{% url 'accounts:dashboard' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-house w-4 text-stone-500" aria-hidden="true"></i>Моето табло</a>
             <a href="{% url 'vocabulary:my_words' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-layer-group w-4 text-amber-500" aria-hidden="true"></i>Моите думи</a>
+            <a href="{% url 'courses:mistakes' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-wand-magic-sparkles w-4 text-red-500" aria-hidden="true"></i>Поправи грешките</a>
             <a href="{% url 'core:leaderboard' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-trophy w-4 text-amber-500" aria-hidden="true"></i>Класация</a>
             <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-sliders w-4 text-stone-500" aria-hidden="true"></i>Настройки</a>
             {% if user.is_staff %}

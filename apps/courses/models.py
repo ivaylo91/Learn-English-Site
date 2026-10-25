@@ -65,6 +65,7 @@ class Lesson(models.Model):
         CONVERSATION = "conversation", "Разговор"
         READING = "reading", "Четене"
         LISTENING = "listening", "Слушане"
+        PRONUNCIATION = "pronunciation", "Произношение"
 
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="lessons", verbose_name="раздел")
     title = models.CharField("заглавие", max_length=120)
@@ -73,6 +74,10 @@ class Lesson(models.Model):
     kind = models.CharField("вид", max_length=20, choices=Kind.choices, default=Kind.GRAMMAR)
     summary = models.CharField("кратко описание", max_length=200, blank=True)
     theory = models.TextField("теория (HTML)", blank=True, help_text="Обяснение на български. Позволен е HTML.")
+    mistakes = models.TextField(
+        "чести грешки", blank=True, db_default="",
+        help_text="Всеки ред: Грешно | Правилно | Защо. Показват се като карти след теорията.",
+    )
     dialogue = models.TextField(
         "диалог", blank=True,
         help_text="За уроци по слушане. Всеки ред: Говорител | Английски текст | Превод на български",
@@ -109,6 +114,15 @@ class Lesson(models.Model):
     def kind_theme(self):
         color, icon = LESSON_KINDS.get(self.kind, ("teal", "fa-book"))
         return {**theme(color), "icon": icon}
+
+    def mistake_cards(self):
+        """Parse the mistakes field into [{wrong, right, why}]."""
+        cards = []
+        for raw in self.mistakes.splitlines():
+            parts = [p.strip() for p in raw.split("|")]
+            if len(parts) >= 2 and parts[0] and parts[1]:
+                cards.append({"wrong": parts[0], "right": parts[1], "why": parts[2] if len(parts) > 2 else ""})
+        return cards
 
     def dialogue_lines(self):
         """Parse the dialogue field into [{speaker, who, en, bg}]; who is the speaker's index (0, 1, ...)."""
@@ -217,3 +231,23 @@ class LessonProgress(models.Model):
     @property
     def is_completed(self):
         return self.completed_at is not None
+
+
+class UserMistake(models.Model):
+    """An exercise the learner got wrong; resolved once they answer it correctly later."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mistakes")
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="mistakes")
+    wrong_count = models.PositiveIntegerField("грешни опити", default=1)
+    last_wrong_at = models.DateTimeField("последна грешка", auto_now_add=True)
+    resolved_at = models.DateTimeField("поправена", null=True, blank=True)
+    xp_awarded = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = [("user", "exercise")]
+        ordering = ["-last_wrong_at"]
+        verbose_name = "грешка на ученик"
+        verbose_name_plural = "грешки на ученици"
+
+    def __str__(self):
+        return f"{self.user} - {self.exercise}"

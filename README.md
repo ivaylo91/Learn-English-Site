@@ -61,6 +61,15 @@ With `DATABASE_URL` empty the site uses local SQLite.
 
 Learners save words from any topic (bookmark icon) into "Моите думи". `/vocabulary/review/` shows due cards; a remembered word moves up a Leitner box (1, 3, 7, 14, 30 days), a forgotten one goes back to box 1. Only due words give XP. `seed_content` updates words in place, so saved words survive a reseed.
 
+### How a lesson teaches (research-based)
+
+- **Warm-up review**: logged-in learners get 2 questions from lessons they already finished (spaced, interleaved retrieval). They don't count toward the lesson score.
+- **Retry**: a missed question comes back once at the end of the session. The score uses the first attempt.
+- **Mistakes deck**: wrong answers are saved per learner; `/courses/mistakes/` practises them, +2 XP per fixed mistake (once each).
+- **Common mistakes**: the lesson `mistakes` field (`Грешно | Правилно | Защо` per line) shows ❌/✅ cards for typical Bulgarian errors. Seed data lives in `apps/core/seed/mistakes.py`.
+- **Pronunciation unit**: minimal pairs for th, w/v, short/long vowels and voiced final consonants (`apps/core/seed/pronunciation.py`).
+- `seed_content` updates exercises in place by position, so saved mistakes survive a reseed.
+
 ### Exercise type: word order
 
 `order`: the prompt is the Bulgarian sentence, the first accepted answer is the English sentence without punctuation. The learner taps shuffled word tiles to build it.

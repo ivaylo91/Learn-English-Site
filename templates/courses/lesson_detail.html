@@ -82,68 +82,30 @@
     </section>
   {% endif %}
 
-  {% if exercise_count %}
-    <section class="card mt-12 p-5 sm:p-8" data-lesson-player
-             data-check-url="{% url 'courses:check' lesson.slug %}"
-             data-complete-url="{% url 'courses:complete' lesson.slug %}"
-             data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
-             aria-live="polite">
-      {% csrf_token %}
-
-      {# Start screen #}
-      <div data-screen="start" class="text-center">
-        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-100 text-2xl text-brand-700 dark:bg-brand-950 dark:text-brand-300"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>
-        <h2 class="mt-4 text-2xl font-bold">Упражнения</h2>
-        <p class="mt-2 text-stone-600 dark:text-stone-400">{{ exercise_count }} задачи, около {{ lesson.minutes }} минути. Нужни са ти поне 60% верни отговора.</p>
-        <button type="button" class="btn btn-primary mt-6 text-base" data-action="start">Започни упражненията<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
-      </div>
-
-      {# Exercise screen #}
-      <div data-screen="exercise" hidden>
-        <div class="flex items-center gap-4">
-          <div class="h-2.5 flex-1 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
-            <div class="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out-soft dark:bg-brand-400" style="width: 0%" data-progress></div>
-          </div>
-          <span class="text-sm font-medium text-stone-500 tabular-nums dark:text-stone-400" data-counter></span>
-        </div>
-        <p class="mt-8 text-sm font-medium text-stone-600 dark:text-stone-400" data-instruction></p>
-        <div class="mt-2 flex items-start gap-3">
-          <p class="flex-1 text-2xl leading-snug font-semibold" data-prompt></p>
-          <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700" data-action="speak-prompt" aria-label="Чуй изречението" hidden>
-            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
-          </button>
-        </div>
-        <div class="mt-6" data-answer-area></div>
-        <div class="mt-5 hidden rounded-xl px-4 py-3" data-feedback></div>
-        <div class="mt-6 flex justify-end">
-          <button type="button" class="btn btn-primary min-w-36 text-base" data-action="check" disabled>Провери</button>
-          <button type="button" class="btn btn-primary min-w-36 text-base" data-action="next" hidden>Напред<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
-        </div>
-      </div>
-
-      {# Result screen #}
-      <div data-screen="result" class="text-center" hidden>
-        <span class="mx-auto grid size-16 place-items-center rounded-2xl text-3xl" data-result-icon></span>
-        <h2 class="mt-4 text-2xl font-bold" data-result-title></h2>
-        <p class="mt-2 text-4xl font-extrabold tabular-nums" data-result-score></p>
-        <p class="mt-2 text-stone-600 dark:text-stone-400" data-result-text></p>
-        <div class="mt-5 flex flex-wrap justify-center gap-3 text-sm font-semibold" data-result-stats></div>
-        {% if not user.is_authenticated %}
-          <div class="mx-auto mt-6 max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-950 dark:bg-brand-950/60 dark:text-brand-100">
-            <a href="{% url 'accounts:signup' %}" class="font-semibold underline">Създай безплатен профил</a>, за да пазиш прогреса и точките си.
-          </div>
-        {% endif %}
-        <div class="mt-8 flex flex-wrap justify-center gap-3">
-          <button type="button" class="btn btn-secondary" data-action="restart"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Опитай пак</button>
-          {% if next_lesson %}
-            <a href="{{ next_lesson.get_absolute_url }}" class="btn btn-primary" data-next-lesson>Следващ урок<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-          {% else %}
-            <a href="{{ lesson.unit.level.get_absolute_url }}" class="btn btn-primary">Към {{ lesson.unit.level.code }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-          {% endif %}
-        </div>
-      </div>
+  {% with cards=lesson.mistake_cards %}
+  {% if cards %}
+    <section class="mt-10" aria-labelledby="mistakes-title">
+      <h2 id="mistakes-title" class="flex items-center gap-2 text-xl font-black">
+        <span class="grid size-9 place-items-center rounded-xl bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+        Чести грешки на българите
+      </h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+        {% for c in cards %}
+          <li class="card p-4">
+            <p class="flex items-start gap-2 font-bold text-red-700 line-through decoration-2 dark:text-red-400" lang="en"><i class="fa-solid fa-xmark mt-1 no-underline" aria-hidden="true"></i><span>{{ c.wrong }}</span></p>
+            <p class="mt-1 flex items-start gap-2 font-extrabold text-emerald-700 dark:text-emerald-400" lang="en"><i class="fa-solid fa-check mt-1" aria-hidden="true"></i><span>{{ c.right }}</span>
+              <button type="button" class="ml-1 text-stone-400 hover:text-emerald-600" data-speak="{{ c.right }}" aria-label="Чуй: {{ c.right }}"><i class="fa-solid fa-volume-low" aria-hidden="true"></i></button>
+            </p>
+            {% if c.why %}<p class="mt-2 text-sm font-semibold text-stone-600 dark:text-stone-400">{{ c.why }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
     </section>
-    {{ exercises_json|json_script:"exercises-data" }}
+  {% endif %}
+  {% endwith %}
+
+  {% if exercise_count %}
+    {% include "courses/_player.html" with intro_title="Упражнения" %}
   {% elif next_lesson %}
     <div class="mt-12 flex justify-end">
       <a href="{{ next_lesson.get_absolute_url }}" class="btn btn-primary">Следващ урок<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
