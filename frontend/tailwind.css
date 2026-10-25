@@ -28,6 +28,9 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    /* Stop iOS from enlarging text in landscape. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-[#fbfaf7] text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
