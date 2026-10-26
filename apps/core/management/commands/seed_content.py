@@ -4,7 +4,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.core.seed import (
-    courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, placement,
+    courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, more_skills,
+    placement,
     pronunciation, vocabulary, vocabulary_more,
 )
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
@@ -43,9 +44,11 @@ class Command(BaseCommand):
 
         units = (courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + courses_extra.UNITS + courses_skills.UNITS
                  + pronunciation.UNITS + more_audio.UNITS + listening.UNITS)
-        # Extra lessons for units defined elsewhere, appended after that unit's own lessons.
-        units = [{**u, "lessons": u["lessons"] + more_audio.EXTRA_LESSONS.get(u["slug"], [])} for u in units]
-        all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES, **courses_extra.MISTAKES, **courses_skills.MISTAKES}
+        # Extra lessons for units defined elsewhere, appended after that unit's own lessons (in this order).
+        extras = [more_audio.EXTRA_LESSONS, more_skills.EXTRA_LESSONS]
+        units = [{**u, "lessons": u["lessons"] + [l for e in extras for l in e.get(u["slug"], [])]} for u in units]
+        all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES, **courses_extra.MISTAKES,
+                        **courses_skills.MISTAKES, **more_skills.MISTAKES}
         lesson_count = 0
         for u in units:
             unit, _ = Unit.objects.update_or_create(
