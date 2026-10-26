@@ -4,7 +4,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.core.seed import (
-    courses, courses_advanced, courses_more, listening, mistakes, placement, pronunciation, vocabulary,
+    courses, courses_advanced, courses_more, courses_skills, listening, mistakes, more_audio, placement,
+    pronunciation, vocabulary, vocabulary_more,
 )
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
 from apps.placement.models import PlacementChoice, PlacementQuestion
@@ -13,7 +14,7 @@ from apps.vocabulary.models import Topic, Word
 TOPIC_COLORS = {
     "airport": "sky", "hotel": "violet", "restaurant": "amber", "directions-transport": "emerald",
     "shopping": "rose", "emergencies": "orange", "numbers": "indigo", "family": "rose",
-    "food-drinks": "emerald", "time-calendar": "sky",
+    "food-drinks": "emerald", "time-calendar": "sky", **vocabulary_more.COLORS,
 }
 
 
@@ -40,8 +41,11 @@ class Command(BaseCommand):
             level, _ = Level.objects.update_or_create(code=data["code"], defaults={k: v for k, v in data.items() if k != "code"})
             levels[level.code] = level
 
-        units = courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + pronunciation.UNITS + listening.UNITS
-        all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES}
+        units = (courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + courses_skills.UNITS
+                 + pronunciation.UNITS + more_audio.UNITS + listening.UNITS)
+        # Extra lessons for units defined elsewhere, appended after that unit's own lessons.
+        units = [{**u, "lessons": u["lessons"] + more_audio.EXTRA_LESSONS.get(u["slug"], [])} for u in units]
+        all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES, **courses_skills.MISTAKES}
         lesson_count = 0
         for u in units:
             unit, _ = Unit.objects.update_or_create(
@@ -78,7 +82,8 @@ class Command(BaseCommand):
 
     def seed_vocabulary(self):
         word_count = 0
-        for t in vocabulary.TOPICS:
+        topics = vocabulary.TOPICS + vocabulary_more.TOPICS
+        for t in topics:
             topic, _ = Topic.objects.update_or_create(
                 slug=t["slug"],
                 defaults={"title": t["title"], "title_en": t["title_en"], "icon": t["icon"], "level": t["level"],
@@ -95,7 +100,7 @@ class Command(BaseCommand):
                 keep.append(word.pk)
             topic.words.exclude(pk__in=keep).delete()
             word_count += len(t["words"])
-        self.stdout.write(f"  {len(vocabulary.TOPICS)} topics, {word_count} words")
+        self.stdout.write(f"  {len(topics)} topics, {word_count} words")
 
     def seed_placement(self):
         PlacementQuestion.objects.all().delete()

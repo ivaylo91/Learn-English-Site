@@ -1,0 +1,123 @@
+"""More vocabulary topics. Word tuples: (english, bulgarian, ipa, example_en, example_bg)."""
+
+COLORS = {
+    "work-office": "violet", "health-body": "rose", "weather": "sky", "home": "amber",
+    "car-rental": "orange", "sightseeing": "emerald", "small-talk": "teal",
+}
+
+TOPICS = [
+    # ---------------- General ----------------
+    {
+        "slug": "work-office", "title": "Работа и офис", "title_en": "Work and the office", "icon": "fa-briefcase",
+        "level": "A2", "order": 14, "summary": "Думи за работното място, срещите и имейлите.",
+        "words": [
+            ("colleague", "колега", "/ˈkɒliːɡ/", "My colleague helped me with the report.", "Колегата ми помогна с доклада."),
+            ("meeting", "среща, заседание", "/ˈmiːtɪŋ/", "The meeting starts at ten.", "Срещата започва в десет."),
+            ("deadline", "краен срок", "/ˈdedlaɪn/", "The deadline is on Friday.", "Крайният срок е в петък."),
+            ("salary", "заплата", "/ˈsæləri/", "", ""),
+            ("manager", "мениджър, ръководител", "/ˈmænɪdʒə/", "", ""),
+            ("to apply for a job", "кандидатствам за работа", "", "I applied for a job in Berlin.", "Кандидатствах за работа в Берлин."),
+            ("job interview", "интервю за работа", "", "", ""),
+            ("day off", "почивен ден", "", "I have a day off tomorrow.", "Утре имам почивен ден."),
+            ("to be on holiday", "в отпуск съм", "", "She's on holiday this week.", "Тя е в отпуск тази седмица."),
+            ("to work from home", "работя от вкъщи", "", "", ""),
+        ],
+    },
+    {
+        "slug": "health-body", "title": "Здраве и тяло", "title_en": "Health and the body", "icon": "fa-heart-pulse",
+        "level": "A2", "order": 15, "summary": "Частите на тялото и как да кажеш, че не си добре.",
+        "words": [
+            ("head", "глава", "/hed/", "", ""),
+            ("throat", "гърло", "/θrəʊt/", "I've got a sore throat.", "Боли ме гърлото."),
+            ("stomach", "стомах", "/ˈstʌmək/", "", ""),
+            ("back", "гръб", "/bæk/", "My back hurts.", "Боли ме гърбът."),
+            ("tooth / teeth", "зъб / зъби", "/tuːθ/ /tiːθ/", "", ""),
+            ("a cold", "настинка", "/kəʊld/", "I've caught a cold.", "Настинал/а съм."),
+            ("a cough", "кашлица", "/kɒf/", "", ""),
+            ("medicine", "лекарство", "/ˈmedsən/", "Take this medicine twice a day.", "Пийте това лекарство два пъти на ден."),
+            ("appointment", "час (при лекар)", "/əˈpɔɪntmənt/", "I'd like to make an appointment.", "Бих искал/а да си запиша час."),
+            ("to feel better", "чувствам се по-добре", "", "I hope you feel better soon.", "Надявам се скоро да се почувстваш по-добре."),
+        ],
+    },
+    {
+        "slug": "weather", "title": "Времето", "title_en": "The weather", "icon": "fa-cloud-sun",
+        "level": "A1", "order": 16, "summary": "Най-любимата тема за разговор на британците.",
+        "words": [
+            ("sunny", "слънчево", "/ˈsʌni/", "It's sunny today.", "Днес е слънчево."),
+            ("cloudy", "облачно", "/ˈklaʊdi/", "", ""),
+            ("rainy", "дъждовно", "/ˈreɪni/", "", ""),
+            ("windy", "ветровито", "/ˈwɪndi/", "", ""),
+            ("snow", "сняг", "/snəʊ/", "It's snowing!", "Вали сняг!"),
+            ("fog", "мъгла", "/fɒɡ/", "", ""),
+            ("hot / warm", "горещо / топло", "", "", ""),
+            ("cold / cool", "студено / хладно", "", "", ""),
+            ("It's raining.", "Вали дъжд.", "", "", ""),
+            ("What's the weather like?", "Какво е времето?", "", "What's the weather like in Varna?", "Какво е времето във Варна?"),
+        ],
+    },
+    {
+        "slug": "home", "title": "Дом и мебели", "title_en": "Home and furniture", "icon": "fa-couch",
+        "level": "A1", "order": 17, "summary": "Стаите в дома и какво има в тях.",
+        "words": [
+            ("living room", "всекидневна", "", "", ""),
+            ("bedroom", "спалня", "/ˈbedruːm/", "", ""),
+            ("kitchen", "кухня", "/ˈkɪtʃɪn/", "", ""),
+            ("bathroom", "баня", "/ˈbɑːθruːm/", "", ""),
+            ("sofa", "диван", "/ˈsəʊfə/", "", ""),
+            ("wardrobe", "гардероб", "/ˈwɔːdrəʊb/", "", ""),
+            ("fridge", "хладилник", "/frɪdʒ/", "The milk is in the fridge.", "Млякото е в хладилника."),
+            ("cooker", "печка", "/ˈkʊkə/", "", ""),
+            ("washing machine", "пералня", "", "", ""),
+            ("to rent a flat", "наемам апартамент", "", "We rent a flat in the centre.", "Наемаме апартамент в центъра."),
+        ],
+    },
+    # ---------------- Travel ----------------
+    {
+        "slug": "car-rental", "title": "Наем на кола", "title_en": "Renting a car", "icon": "fa-car",
+        "level": "A2", "is_travel": True, "order": 7, "summary": "Фрази за гишето за коли под наем и пътя.",
+        "words": [
+            ("I'd like to rent a car for a week.", "Бих искал/а да наема кола за седмица.", "", "", ""),
+            ("Is insurance included?", "Включена ли е застраховката?", "", "", ""),
+            ("driving licence", "шофьорска книжка", "", "Can I see your driving licence?", "Може ли шофьорската ви книжка?"),
+            ("full tank", "пълен резервоар", "", "Please return the car with a full tank.", "Моля, върнете колата с пълен резервоар."),
+            ("petrol station", "бензиностанция", "", "", ""),
+            ("automatic / manual", "автоматична / ръчна (скоростна кутия)", "", "", ""),
+            ("Where can I park?", "Къде мога да паркирам?", "", "", ""),
+            ("The car has broken down.", "Колата се развали.", "", "", ""),
+            ("speed limit", "ограничение на скоростта", "", "", ""),
+            ("toll road", "платен път", "", "", ""),
+        ],
+    },
+    {
+        "slug": "sightseeing", "title": "Разглеждане на забележителности", "title_en": "Sightseeing", "icon": "fa-landmark",
+        "level": "A2", "is_travel": True, "order": 8, "summary": "Музеи, билети, екскурзии и снимки.",
+        "words": [
+            ("What time does the museum open?", "В колко часа отваря музеят?", "", "", ""),
+            ("Two adult tickets, please.", "Два билета за възрастни, моля.", "", "", ""),
+            ("Is there a student discount?", "Има ли намаление за студенти?", "", "", ""),
+            ("guided tour", "екскурзия с екскурзовод", "", "Is there a guided tour in English?", "Има ли обиколка с екскурзовод на английски?"),
+            ("Can you take a photo of us?", "Може ли да ни снимате?", "", "", ""),
+            ("Is it worth visiting?", "Струва ли си да се посети?", "", "", ""),
+            ("old town", "стар град", "", "", ""),
+            ("souvenir", "сувенир", "/ˌsuːvəˈnɪə/", "", ""),
+            ("opening hours", "работно време", "", "", ""),
+            ("entrance / exit", "вход / изход", "", "", ""),
+        ],
+    },
+    {
+        "slug": "small-talk", "title": "Кратки разговори", "title_en": "Small talk", "icon": "fa-face-smile",
+        "level": "A2", "is_travel": True, "order": 9, "summary": "Как да започнеш разговор с непознат.",
+        "words": [
+            ("Lovely weather today, isn't it?", "Хубаво време днес, нали?", "", "", ""),
+            ("Is this your first time here?", "За първи път ли сте тук?", "", "", ""),
+            ("Where are you from?", "Откъде сте?", "", "", ""),
+            ("What brings you here?", "Какво ви води насам?", "", "", ""),
+            ("How long are you staying?", "Колко време ще останете?", "", "", ""),
+            ("Have you tried the local food?", "Опитахте ли местната кухня?", "", "", ""),
+            ("It was nice talking to you.", "Беше ми приятно да си поговорим.", "", "", ""),
+            ("Enjoy the rest of your trip!", "Приятно пътуване оттук нататък!", "", "", ""),
+            ("Me too!", "И аз!", "", "", ""),
+            ("Really? That's interesting.", "Наистина ли? Интересно.", "", "", ""),
+        ],
+    },
+]

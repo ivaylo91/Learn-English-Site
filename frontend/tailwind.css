@@ -162,6 +162,14 @@
   .prose-lesson td {
     @apply border-t border-stone-200 px-2 py-2 break-words sm:px-3 dark:border-stone-800;
   }
+  /* Reading text box in reading lessons */
+  .prose-lesson .reading {
+    @apply my-6 rounded-3xl border-2 border-emerald-200 bg-emerald-50/60 p-5 text-lg leading-relaxed text-stone-800 sm:p-6
+      dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-stone-100;
+  }
+  .prose-lesson .reading h4 {
+    @apply mb-3 flex items-center justify-between gap-3 text-xl font-black text-stone-900 dark:text-white;
+  }
   .prose-lesson .tip {
     @apply my-5 rounded-xl border-l-4 border-brand-600 bg-brand-50 px-4 py-3 text-stone-800 dark:border-brand-400 dark:bg-brand-950/60 dark:text-stone-200;
   }
