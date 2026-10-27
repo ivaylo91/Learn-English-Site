@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
@@ -98,3 +98,18 @@ def profile(request):
     else:
         form = ProfileForm(instance=request.user)
     return render(request, "accounts/profile.html", {"form": form})
+
+
+@login_required
+def delete_account(request):
+    """GDPR erasure: delete the user and everything linked to them (progress, words, mistakes)."""
+    if request.method == "POST":
+        if request.POST.get("confirm_email", "").strip().lower() != request.user.email.lower():
+            messages.error(request, "Имейлът не съвпада. Профилът не е изтрит.")
+            return redirect("accounts:profile")
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Профилът и всички данни са изтрити.")
+        return redirect("core:home")
+    return redirect("accounts:profile")

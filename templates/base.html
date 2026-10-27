@@ -6,6 +6,8 @@
   <title>{% block title %}{{ SITE_NAME }}: английски на български{% endblock %}</title>
   <meta name="description" content="{% block description %}Безплатен курс по английски език на български. От A1 до C2, с уроци, упражнения, речник и фрази за пътуване.{% endblock %}">
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
   <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ SITE_NAME }}">
@@ -13,7 +15,11 @@
   <meta property="og:title" content="{% block og_title %}{{ SITE_NAME }}: английски на български{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Безплатен курс по английски език на български. От A1 до C2, с уроци, слушане, речник и фрази за пътуване.{% endblock %}">
   <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ SITE_NAME }}: английски, обяснен на български">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)">
   <script>
@@ -25,10 +31,12 @@
       }
     })();
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  {# Fonts and icons are self-hosted (privacy: no third-party requests). Text font preloaded; icons load without blocking. #}
+  <link rel="preload" href="{% static 'vendor/fonts/nunito-cyrillic-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'vendor/fonts/nunito-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'vendor/fontawesome/webfonts/fa-solid-900.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}"></noscript>
   {% tailwind_css %}
   {% block head %}{% endblock %}
 </head>

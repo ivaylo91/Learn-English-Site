@@ -49,6 +49,20 @@ class PageSmokeTests(TestCase):
         self.assertEqual(self.client.session["placement_level"], "C2")
         self.assertContains(self.client.get(reverse("placement:result")), "C2")
 
+    def test_trust_pages(self):
+        for name in ["core:about", "core:faq", "core:privacy", "core:terms"]:
+            self.assert_ok(reverse(name))
+        with self.settings(CONTACT_EMAIL="hello@example.com"):
+            self.assertContains(self.client.get(reverse("core:privacy")), "hello@example.com")
+        self.assertNotContains(self.client.get(reverse("core:privacy")), "mailto:")
+
+    def test_level_page_shows_can_do_goals(self):
+        self.assertContains(self.client.get(reverse("courses:level", args=["a1"])), "След ниво A1 ще можеш")
+
+    def test_home_shows_real_stats(self):
+        response = self.client.get(reverse("core:home"))
+        self.assertEqual(response.context["stats"]["lessons"], Lesson.objects.filter(is_published=True).count())
+
     def test_seo_endpoints(self):
         self.assertContains(self.client.get("/robots.txt"), "Sitemap: http://testserver/sitemap.xml")
         response = self.client.get("/sitemap.xml")

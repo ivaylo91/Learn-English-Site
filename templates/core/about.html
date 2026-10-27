@@ -1,0 +1,35 @@
+{% extends "core/_page.html" %}
+{% block title %}За нас | {{ SITE_NAME }}{% endblock %}
+{% block description %}{{ SITE_NAME }} е безплатен курс по английски на български, изграден по CEFR и доказани методи за учене.{% endblock %}
+{% block icon %}fa-comment-dots{% endblock %}
+{% block heading %}За {{ SITE_NAME }}{% endblock %}
+{% block intro %}
+  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">
+    Курс по английски език, обяснен на разбираем български. Безплатно, от първата дума до свободен разговор.
+  </p>
+  <dl class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div class="card p-4"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400">урока</dt><dd class="text-3xl font-black">{{ stats.lessons }}</dd></div>
+    <div class="card p-4"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400">упражнения</dt><dd class="text-3xl font-black">{{ stats.exercises }}</dd></div>
+    <div class="card p-4"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400">думи и фрази</dt><dd class="text-3xl font-black">{{ stats.words }}</dd></div>
+    <div class="card p-4"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400">нива</dt><dd class="text-3xl font-black">{{ levels|length }}</dd></div>
+  </dl>
+{% endblock %}
+{% block body %}
+<h2>Как учим</h2>
+<p>Курсът следва <strong>Общата европейска езикова рамка (CEFR)</strong>: шест нива от A1 до C2, всяко с ясни цели какво ще можеш накрая. Във всяко ниво има граматика, речник, четене, слушане, произношение, говорене и писане.</p>
+<p>Методите са подбрани според изследванията за това как хората учат езици:</p>
+<ul>
+<li><strong>Припомняне вместо препрочитане.</strong> Упражненията те карат да извадиш знанието от паметта, което го укрепва много повече от повторното четене.</li>
+<li><strong>Повторение през интервали.</strong> Думите и грешките се връщат точно когато започваш да ги забравяш.</li>
+<li><strong>Ясна обратна връзка.</strong> Веднага разбираш какво е грешно и защо, с обяснение на български.</li>
+<li><strong>Грешките на българите.</strong> Всеки урок показва типичните грешки, които правим заради българския език.</li>
+<li><strong>Метод „сянка“ за говорене.</strong> Чуваш изречение и го повтаряш на глас; разпознаването на реч показва кои думи са се чули ясно.</li>
+<li><strong>Кратки уроци.</strong> 5-10 минути на урок, за да учиш редовно, всеки ден.</li>
+</ul>
+<h2>Безплатно</h2>
+<p>Всички уроци са безплатни. Нямаме реклами и не продаваме данни.</p>
+{% if CONTACT_EMAIL %}
+<h2>Контакт</h2>
+<p>Имаш въпрос, откри грешка в урок или имаш идея? Пиши ни на <a href="mailto:{{ CONTACT_EMAIL }}" class="font-bold text-brand-700 underline dark:text-brand-300">{{ CONTACT_EMAIL }}</a>.</p>
+{% endif %}
+{% endblock %}

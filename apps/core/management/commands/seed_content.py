@@ -19,6 +19,13 @@ TOPIC_COLORS = {
 }
 
 
+def outline_headings(html):
+    """Theory sits under the page h1, so its headings start at h2 (seed files write h3/h4)."""
+    for old, new in (("h3", "h2"), ("h4", "h3")):
+        html = html.replace(f"<{old}>", f"<{new}>").replace(f"</{old}>", f"</{new}>")
+    return html
+
+
 def shuffled_choices(prompt, choices, correct):
     """Shuffle choices the same way every run, so the right answer isn't always first."""
     items = [(text, i == correct) for i, text in enumerate(choices)]
@@ -60,7 +67,7 @@ class Command(BaseCommand):
                 lesson, _ = Lesson.objects.update_or_create(
                     slug=l["slug"],
                     defaults={"unit": unit, "title": l["title"], "title_en": l.get("title_en", ""), "kind": l["kind"],
-                              "summary": l.get("summary", ""), "theory": l["theory"].strip(), "order": order,
+                              "summary": l.get("summary", ""), "theory": outline_headings(l["theory"].strip()), "order": order,
                               "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
                               "dialogue": l.get("dialogue", ""),
                               "mistakes": "\n".join(" | ".join(m) for m in all_mistakes.get(l["slug"], []))},

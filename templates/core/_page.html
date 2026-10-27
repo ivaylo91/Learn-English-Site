@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{# Shared layout for text pages: icon, title, intro, then the page body in a readable column. #}
+{% block content %}
+<div class="container-page max-w-3xl py-12 md:py-16">
+  <span class="grid size-16 place-items-center rounded-2xl text-3xl text-white shadow-[0_4px_0_0_rgb(0_0_0/0.15)] {% block icon_bg %}bg-brand-700{% endblock %}">
+    <i class="fa-solid {% block icon %}fa-circle-info{% endblock %}" aria-hidden="true"></i>
+  </span>
+  <h1 class="mt-6 text-3xl font-black tracking-tight md:text-5xl">{% block heading %}{% endblock %}</h1>
+  {% block intro %}{% endblock %}
+  <div class="prose-lesson mt-8 max-w-none">
+    {% block body %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

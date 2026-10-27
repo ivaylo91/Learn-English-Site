@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .can_do import CAN_DO
 from .models import Choice, Exercise, Lesson, LessonProgress, Level, UserMistake
 
 PASS_SCORE = 60
@@ -37,13 +38,16 @@ def level_list(request):
 
 def level_detail(request, code):
     level = get_object_or_404(Level, code=code.upper())
-    units = level.units.prefetch_related(
+    units = list(level.units.prefetch_related(
         Prefetch("lessons", queryset=Lesson.objects.filter(is_published=True).annotate(exercise_count=Count("exercises")))
-    )
+    ))
+    done = completed_lesson_ids(request.user)
+    for unit in units:
+        unit.done_count = sum(1 for lesson in unit.lessons.all() if lesson.id in done)
     return render(
         request,
         "courses/level_detail.html",
-        {"level": level, "units": units, "done": completed_lesson_ids(request.user)},
+        {"level": level, "units": units, "done": done, "can_do": CAN_DO.get(level.code, [])},
     )
 
 

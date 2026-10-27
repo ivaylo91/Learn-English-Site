@@ -69,6 +69,16 @@
   </div>
 </section>
 
+{# Real numbers from the database #}
+<section class="container-page" aria-label="Съдържание на курса">
+  <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div class="card p-4 sm:p-5"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400"><i class="fa-solid fa-book-open mr-1 text-violet-600" aria-hidden="true"></i>урока</dt><dd class="mt-1 text-3xl font-black">{{ stats.lessons }}</dd></div>
+    <div class="card p-4 sm:p-5"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400"><i class="fa-solid fa-pen-to-square mr-1 text-emerald-700" aria-hidden="true"></i>упражнения</dt><dd class="mt-1 text-3xl font-black">{{ stats.exercises }}</dd></div>
+    <div class="card p-4 sm:p-5"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400"><i class="fa-solid fa-headphones mr-1 text-rose-600" aria-hidden="true"></i>урока по слушане</dt><dd class="mt-1 text-3xl font-black">{{ stats.listening }}</dd></div>
+    <div class="card p-4 sm:p-5"><dt class="text-sm font-bold text-stone-500 dark:text-stone-400"><i class="fa-solid fa-language mr-1 text-amber-600" aria-hidden="true"></i>думи и фрази</dt><dd class="mt-1 text-3xl font-black">{{ stats.words }}</dd></div>
+  </dl>
+</section>
+
 {# Levels ladder #}
 <section class="container-page mt-12 md:mt-20">
   <h2 class="max-w-2xl text-3xl font-black tracking-tight md:text-4xl">Шест нива. Един ясен път.</h2>

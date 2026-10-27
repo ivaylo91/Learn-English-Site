@@ -20,16 +20,40 @@
     </div>
   </div>
 
+  {% if can_do %}
+    <section class="card mt-8 p-6 sm:p-8" aria-labelledby="can-do-title">
+      <h2 id="can-do-title" class="flex items-center gap-3 text-xl font-black">
+        <span class="grid size-10 place-items-center rounded-xl {{ level.theme.soft }}"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></span>
+        След ниво {{ level.code }} ще можеш
+      </h2>
+      <ul class="mt-5 grid gap-3 sm:grid-cols-2">
+        {% for goal in can_do %}
+          <li class="flex gap-3 font-semibold text-stone-700 dark:text-stone-300">
+            <i class="fa-solid fa-circle-check mt-1 {{ level.theme.text }}" aria-hidden="true"></i>{{ goal }}
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="mt-5 text-sm font-semibold text-stone-500 dark:text-stone-400">Целите следват Общата европейска езикова рамка (CEFR).</p>
+    </section>
+  {% endif %}
+
   {% if units %}
     <div class="mt-12 space-y-12">
       {% for unit in units %}
         <section aria-labelledby="unit-{{ unit.id }}">
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3">
             <span class="grid size-12 place-items-center rounded-2xl text-lg {{ level.theme.soft }}"><i class="fa-solid {{ unit.icon }}" aria-hidden="true"></i></span>
-            <div>
+            <div class="min-w-0 flex-1">
               <h2 id="unit-{{ unit.id }}" class="text-xl font-black">Раздел {{ forloop.counter }}: {{ unit.title }}</h2>
               {% if unit.summary %}<p class="text-sm font-semibold text-stone-600 dark:text-stone-400">{{ unit.summary }}</p>{% endif %}
             </div>
+            {% if user.is_authenticated %}
+              {% with total=unit.lessons.all|length %}
+                <span class="badge {% if unit.done_count == total %}bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200{% else %}badge-muted{% endif %} text-sm">
+                  <i class="fa-solid {% if unit.done_count == total %}fa-circle-check{% else %}fa-chart-simple{% endif %}" aria-hidden="true"></i>{{ unit.done_count }} / {{ total }}
+                </span>
+              {% endwith %}
+            {% endif %}
           </div>
           <ol class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {% for lesson in unit.lessons.all %}

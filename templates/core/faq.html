@@ -1,0 +1,22 @@
+{% extends "core/_page.html" %}
+{% block title %}Често задавани въпроси | {{ SITE_NAME }}{% endblock %}
+{% block description %}Отговори на често задавани въпроси за курса по английски {{ SITE_NAME }}.{% endblock %}
+{% block icon_bg %}bg-sky-700{% endblock %}
+{% block icon %}fa-circle-question{% endblock %}
+{% block heading %}Често задавани въпроси{% endblock %}
+{% block body %}
+<div class="not-prose space-y-3">
+  {% for question, answer in faq %}
+    <details class="card group p-5" {% if forloop.first %}open{% endif %}>
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-black">
+        {{ question }}
+        <i class="fa-solid fa-chevron-down text-stone-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
+      </summary>
+      <p class="mt-3 font-semibold text-stone-600 dark:text-stone-400">{{ answer }}</p>
+    </details>
+  {% endfor %}
+</div>
+{% if CONTACT_EMAIL %}
+<p class="mt-8">Не намери отговор? Пиши ни на <a href="mailto:{{ CONTACT_EMAIL }}" class="font-bold text-brand-700 underline dark:text-brand-300">{{ CONTACT_EMAIL }}</a>.</p>
+{% endif %}
+{% endblock %}

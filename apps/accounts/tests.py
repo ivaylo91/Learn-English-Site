@@ -96,3 +96,20 @@ class AchievementLeaderboardTests(TestCase):
         response = self.client.get(reverse("core:leaderboard"))
         self.assertEqual([u.display_name for u in response.context["leaders"]], ["Цвети"])
         self.assertNotContains(response, "Боби")
+
+
+class DeleteAccountTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("del@example.com", "pass")
+        self.client.force_login(self.user)
+
+    def test_wrong_email_keeps_account(self):
+        self.client.post(reverse("accounts:delete"), {"confirm_email": "other@example.com"})
+        self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+    def test_matching_email_deletes_account_and_logs_out(self):
+        self.user.add_xp(10)
+        response = self.client.post(reverse("accounts:delete"), {"confirm_email": "DEL@example.com "})
+        self.assertRedirects(response, reverse("core:home"))
+        self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+        self.assertNotIn("_auth_user_id", self.client.session)

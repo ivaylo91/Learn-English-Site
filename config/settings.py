@@ -160,3 +160,6 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
 
 SITE_NAME = "Говори"
+# Shown on the privacy, terms and contact pages. Set these in the Vercel project settings.
+OPERATOR_NAME = os.getenv("OPERATOR_NAME", "")
+CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "")
