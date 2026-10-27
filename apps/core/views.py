@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from apps.courses.models import Exercise, Lesson, Level
+from apps.courses.views import category_counts
 from apps.vocabulary.models import Topic, Word
 
 
@@ -22,6 +23,7 @@ def home(request):
         return redirect("accounts:dashboard")
     context = {
         "stats": site_stats(),
+        "categories": category_counts(list(Lesson.objects.filter(is_published=True).only("id", "kind")), set()),
         "levels": Level.objects.all(),
         "travel_topics": Topic.objects.filter(is_travel=True)[:6],
         "listening_lessons": Lesson.objects.filter(is_published=True, kind=Lesson.Kind.LISTENING)

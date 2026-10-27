@@ -7,6 +7,7 @@ app_name = "courses"
 urlpatterns = [
     path("", views.level_list, name="levels"),
     path("listening/", views.listening, name="listening"),
+    path("category/<slug:key>/", views.category_detail, name="category"),
     path("check/", views.check_any, name="check_any"),
     path("mistakes/", views.mistakes, name="mistakes"),
     path("mistakes/complete/", views.complete_mistakes, name="mistakes_complete"),

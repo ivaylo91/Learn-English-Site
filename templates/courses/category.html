@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ category.label }} ({{ category.label_en }}): уроци по английски A1-C2 | {{ SITE_NAME }}{% endblock %}
+{% block description %}{{ category.summary }} Всички уроци в категория „{{ category.label }}“, подредени по нива от A1 до C2.{% endblock %}
+{% block content %}
+<section class="relative overflow-hidden">
+  <div class="blob -top-20 right-10 size-80 opacity-60 {{ category.soft }}"></div>
+  <div class="container-page relative py-12 md:py-16">
+    <nav aria-label="Навигация" class="text-sm font-semibold text-stone-500 dark:text-stone-400">
+      <a href="{% url 'courses:levels' %}" class="hover:underline">Курс</a>
+      <i class="fa-solid fa-chevron-right mx-2 text-xs" aria-hidden="true"></i>
+      <span class="text-stone-800 dark:text-stone-200">{{ category.label }}</span>
+    </nav>
+    <div class="mt-6 flex flex-wrap items-center gap-5">
+      <span class="grid size-16 place-items-center rounded-2xl text-3xl {{ category.solid }}"><i class="fa-solid {{ category.icon }}" aria-hidden="true"></i></span>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight md:text-5xl">{{ category.label }}</h1>
+        <p class="text-lg font-bold text-stone-500 dark:text-stone-400" lang="en">{{ category.label_en }}</p>
+      </div>
+    </div>
+    <p class="mt-4 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">{{ category.summary }}</p>
+    <div class="mt-5 flex flex-wrap items-center gap-2 text-sm">
+      <span class="badge {{ category.soft }} text-sm"><i class="fa-solid fa-book-open" aria-hidden="true"></i>{{ lessons|length }} урока</span>
+      {% if user.is_authenticated %}<span class="badge badge-muted text-sm"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ done_count }} завършени</span>{% endif %}
+    </div>
+
+    <nav class="mt-8 flex flex-wrap gap-2" aria-label="Други категории">
+      {% for c in other_categories %}
+        <a href="{% url 'courses:category' c.key %}" class="inline-flex items-center gap-2 rounded-full border-2 border-stone-200 bg-white px-4 py-2 text-sm font-bold transition-colors hover:border-stone-400 dark:border-stone-800 dark:bg-stone-900">
+          <i class="fa-solid {{ c.icon }} {{ c.text }}" aria-hidden="true"></i>{{ c.label }}
+        </a>
+      {% endfor %}
+    </nav>
+  </div>
+</section>
+
+<div class="container-page">
+  {% if category.key == "vocabulary" %}
+    <div class="mb-10 grid gap-4 sm:grid-cols-2">
+      <a href="{% url 'vocabulary:topics' %}" class="card card-link flex items-center gap-4 p-5 hover:border-amber-400">
+        <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-amber-400 text-xl text-amber-950"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+        <span class="flex-1"><span class="block font-black">Думи по теми</span><span class="text-sm font-semibold text-stone-600 dark:text-stone-400">Карти, произношение и преговор</span></span>
+        <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+      </a>
+      <a href="{% url 'vocabulary:travel' %}" class="card card-link flex items-center gap-4 p-5 hover:border-sky-400">
+        <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-sky-700 text-xl text-white"><i class="fa-solid fa-plane" aria-hidden="true"></i></span>
+        <span class="flex-1"><span class="block font-black">Фрази за пътуване</span><span class="text-sm font-semibold text-stone-600 dark:text-stone-400">Летище, хотел, ресторант и още</span></span>
+        <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+      </a>
+    </div>
+  {% endif %}
+
+  {% regroup lessons by unit.level as by_level %}
+  {% for group in by_level %}
+    <section class="mt-10 first:mt-0" aria-labelledby="lvl-{{ group.grouper.code }}">
+      <h2 id="lvl-{{ group.grouper.code }}" class="flex items-center gap-3 text-xl font-black">
+        <span class="grid size-10 place-items-center rounded-xl text-sm font-black {{ group.grouper.theme.solid }}">{{ group.grouper.code }}</span>
+        {{ group.grouper.title }}
+        <span class="text-sm font-bold text-stone-500 dark:text-stone-400">{{ group.list|length }}</span>
+      </h2>
+      <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {% for lesson in group.list %}
+          <li>{% include "courses/_lesson_card.html" %}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% empty %}
+    <div class="card p-10 text-center font-semibold text-stone-600 dark:text-stone-400">В тази категория още няма уроци.</div>
+  {% endfor %}
+</div>
+{% endblock %}

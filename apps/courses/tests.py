@@ -139,10 +139,30 @@ class AudioLessonTests(TestCase):
         self.assertContains(response, "data-dialogue-play")
         self.assertEqual(response.context["exercises_json"][0]["audio"], "Have a nice day!")
 
-    def test_listening_page_lists_only_listening(self):
+    def test_listening_category_groups_audio_kinds(self):
         Lesson.objects.create(unit=self.lesson.unit, title="Grammar", slug="grammar")
+        Lesson.objects.create(unit=self.lesson.unit, title="Th", slug="pron", kind=Lesson.Kind.PRONUNCIATION, order=1)
+        response = self.client.get(reverse("courses:category", args=["listening"]))
+        self.assertEqual(sorted(l.slug for l in response.context["lessons"]), ["cafe", "pron"])
+
+    def test_old_listening_url_redirects(self):
         response = self.client.get(reverse("courses:listening"))
-        self.assertEqual([l.slug for l in response.context["lessons"]], ["cafe"])
+        self.assertRedirects(response, reverse("courses:category", args=["listening"]), status_code=301)
+
+
+class CategoryTests(TestCase):
+    def test_every_kind_has_exactly_one_category(self):
+        from .categories import CATEGORIES, KIND_TO_CATEGORY
+
+        self.assertEqual(set(KIND_TO_CATEGORY), {k for k, _ in Lesson.Kind.choices})
+        self.assertEqual(list(CATEGORIES), ["listening", "reading", "writing", "grammar", "vocabulary"])
+
+    def test_conversation_lessons_show_as_vocabulary(self):
+        lesson = Lesson(kind=Lesson.Kind.CONVERSATION)
+        self.assertEqual((lesson.category["key"], lesson.kind_theme["label"]), ("vocabulary", "Речник"))
+
+    def test_unknown_category_404(self):
+        self.assertEqual(self.client.get("/courses/category/cooking/").status_code, 404)
 
 
 class WordOrderTests(TestCase):

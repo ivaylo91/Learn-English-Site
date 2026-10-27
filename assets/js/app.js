@@ -149,6 +149,24 @@
     });
   }
 
+  // Category filter chips (level pages): show only lessons of one category, hide empty sections.
+  var filterGroup = document.querySelector("[data-filter-group]");
+  var filterTarget = document.querySelector("[data-filter-target]");
+  if (filterGroup && filterTarget) {
+    filterGroup.querySelectorAll("[data-filter]").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var key = chip.getAttribute("data-filter");
+        filterGroup.querySelectorAll("[data-filter]").forEach(function (c) { c.setAttribute("aria-pressed", String(c === chip)); });
+        filterTarget.querySelectorAll("[data-category]").forEach(function (item) {
+          item.hidden = !!key && item.getAttribute("data-category") !== key;
+        });
+        filterTarget.querySelectorAll("[data-filter-section]").forEach(function (section) {
+          section.hidden = !section.querySelector("[data-category]:not([hidden])");
+        });
+      });
+    });
+  }
+
   // Show / hide password
   document.querySelectorAll("[data-password-toggle]").forEach(function (btn) {
     var input = document.getElementById(btn.getAttribute("data-password-toggle"));

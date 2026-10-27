@@ -19,7 +19,7 @@
     <span class="hidden size-16 shrink-0 -rotate-6 place-items-center rounded-3xl text-2xl sm:grid {{ kt.soft }}"><i class="fa-solid {{ kt.icon }}" aria-hidden="true"></i></span>
     <div>
       <div class="flex flex-wrap items-center gap-2">
-        <span class="badge {{ kt.soft }}"><i class="fa-solid {{ kt.icon }} sm:hidden" aria-hidden="true"></i>{{ lesson.get_kind_display }}</span>
+        <span class="badge {{ kt.soft }}"><i class="fa-solid {{ kt.icon }} sm:hidden" aria-hidden="true"></i>{{ kt.label }}</span>
         <span class="badge {{ lesson.unit.level.theme.soft }}">{{ lesson.unit.level.code }}</span>
         <span class="badge badge-muted">Урок {{ position }} от {{ unit_size }}</span>
         {% if progress.is_completed %}<span class="badge bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Завършен, {{ progress.best_score }}%</span>{% endif %}

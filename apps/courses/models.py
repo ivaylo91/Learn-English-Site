@@ -8,7 +8,9 @@ from django.db import models
 from django.urls import reverse
 
 from apps.accounts.models import CEFRLevel
-from apps.core.theme import LESSON_KINDS, LEVEL_COLORS, theme
+from apps.core.theme import LEVEL_COLORS, theme
+
+from .categories import category_for_kind
 
 
 def normalize_answer(text):
@@ -141,9 +143,12 @@ class Lesson(models.Model):
         return self.is_premium and not (user.is_authenticated and user.is_premium)
 
     @property
-    def kind_theme(self):
-        color, icon = LESSON_KINDS.get(self.kind, ("teal", "fa-book"))
-        return {**theme(color), "icon": icon}
+    def category(self):
+        """The learner-facing category (one of five), with label, icon and colors."""
+        return category_for_kind(self.kind)
+
+    # Templates use kind_theme for the badge, icon and colors; it now follows the category.
+    kind_theme = category
 
     def mistake_cards(self):
         """Parse the mistakes field into [{wrong, right, why}]."""

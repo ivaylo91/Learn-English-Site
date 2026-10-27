@@ -3,13 +3,19 @@
 {% block content %}
 <div class="container-page py-12 md:py-16">
   <h1 class="text-3xl font-black tracking-tight md:text-5xl">Курс по английски</h1>
-  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">Избери ниво. Всяко ниво има раздели с кратки уроци, слушане и упражнения.</p>
+  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">Учи по категория или избери ниво. Всяко ниво съдържа и петте категории.</p>
   <div class="mt-6 flex flex-wrap gap-3">
     <a href="{% url 'placement:test' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-list-check text-emerald-500" aria-hidden="true"></i>Не знаеш нивото си? Направи теста</a>
-    <a href="{% url 'courses:listening' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-headphones text-rose-500" aria-hidden="true"></i>Само уроци по слушане</a>
   </div>
 
-  <ol class="mt-10 grid gap-5 md:grid-cols-2">
+  <section class="mt-10" aria-labelledby="categories-title">
+    <h2 id="categories-title" class="text-xl font-black">Категории</h2>
+    <div class="mt-4">{% include "courses/_category_tiles.html" %}</div>
+  </section>
+
+  <h2 class="mt-12 text-xl font-black">Нива</h2>
+
+  <ol class="mt-4 grid gap-5 md:grid-cols-2">
     {% for row in rows %}
       {% with level=row.level %}
       <li class="reveal" style="--i: {{ forloop.counter0 }}">

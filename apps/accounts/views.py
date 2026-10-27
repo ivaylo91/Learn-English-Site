@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from apps.courses.models import Lesson, LessonProgress, Level, UserMistake
+from apps.courses.views import category_counts
 from apps.vocabulary.models import SavedWord, Topic
 
 from .achievements import achievements_for, week_start, weekly_leaderboard
@@ -72,6 +73,7 @@ def dashboard(request):
         "deck_size": SavedWord.objects.filter(user=user).count(),
         "open_mistakes": UserMistake.objects.filter(user=user, resolved_at__isnull=True).count(),
         "achievements": achievements_for(user),
+        "categories": category_counts(list(Lesson.objects.filter(is_published=True).only("id", "kind")), completed_ids),
     }
     context["earned_count"] = sum(1 for a in context["achievements"] if a["earned"])
     return render(request, "accounts/dashboard.html", context)

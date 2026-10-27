@@ -4,7 +4,7 @@
   <span class="flex items-center justify-between gap-2">
     <span class="flex items-center gap-2">
       <span class="grid size-10 place-items-center rounded-2xl {{ kt.soft }}"><i class="fa-solid {{ kt.icon }}" aria-hidden="true"></i></span>
-      <span class="text-sm font-extrabold {{ kt.text }}">{{ lesson.get_kind_display }}</span>
+      <span class="text-sm font-extrabold {{ kt.text }}">{{ kt.label }}</span>
     </span>
     {% if lesson.id in done %}
       <span class="grid size-8 place-items-center rounded-full bg-emerald-500 text-white" title="Завършен"><i class="fa-solid fa-check" aria-hidden="true"></i><span class="sr-only">Завършен</span></span>

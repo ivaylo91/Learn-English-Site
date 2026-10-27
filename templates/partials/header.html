@@ -10,8 +10,21 @@
 
     <nav class="ml-4 hidden items-center gap-1 lg:flex" aria-label="Основна навигация">
       <a href="{% url 'courses:levels' %}" class="nav-link {% if '/courses/' in path and '/listening/' not in path %}is-active{% endif %}"><i class="fa-solid fa-graduation-cap mr-1.5 text-violet-500" aria-hidden="true"></i>Курс</a>
-      <a href="{% url 'courses:listening' %}" class="nav-link {% if '/listening/' in path %}is-active{% endif %}"><i class="fa-solid fa-headphones mr-1.5 text-rose-500" aria-hidden="true"></i>Слушане</a>
-      <a href="{% url 'vocabulary:topics' %}" class="nav-link {% if path == '/vocabulary/' %}is-active{% endif %}"><i class="fa-solid fa-book mr-1.5 text-amber-500" aria-hidden="true"></i>Речник</a>
+      <details class="relative" data-dropdown>
+        <summary class="nav-link flex cursor-pointer list-none items-center {% if '/courses/category/' in path or path == '/vocabulary/' %}is-active{% endif %}">
+          <i class="fa-solid fa-shapes mr-1.5 text-sky-500" aria-hidden="true"></i>Категории<i class="fa-solid fa-chevron-down ml-1.5 text-xs text-stone-400" aria-hidden="true"></i>
+        </summary>
+        <div class="absolute left-0 mt-2 w-64 rounded-2xl border border-stone-200 bg-white p-1.5 shadow-lg shadow-stone-900/5 dark:border-stone-800 dark:bg-stone-900">
+          {% for c in LESSON_CATEGORIES %}
+            <a href="{% url 'courses:category' c.key %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold hover:bg-stone-100 dark:hover:bg-stone-800">
+              <span class="grid size-8 place-items-center rounded-lg {{ c.soft }}"><i class="fa-solid {{ c.icon }}" aria-hidden="true"></i></span>
+              <span>{{ c.label }} <span class="font-semibold text-stone-500 dark:text-stone-400" lang="en">{{ c.label_en }}</span></span>
+            </a>
+          {% endfor %}
+          <div class="my-1 border-t border-stone-200 dark:border-stone-800"></div>
+          <a href="{% url 'vocabulary:topics' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-stone-100 dark:hover:bg-stone-800"><i class="fa-solid fa-layer-group w-8 text-center text-amber-600" aria-hidden="true"></i>Думи по теми</a>
+        </div>
+      </details>
       <a href="{% url 'vocabulary:travel' %}" class="nav-link {% if '/travel/' in path %}is-active{% endif %}"><i class="fa-solid fa-plane mr-1.5 text-sky-500" aria-hidden="true"></i>Пътуване</a>
       <a href="{% url 'placement:test' %}" class="nav-link hidden xl:inline-flex {% if '/placement-test/' in path %}is-active{% endif %}"><i class="fa-solid fa-list-check mr-1.5 text-emerald-500" aria-hidden="true"></i>Тест</a>
     </nav>
@@ -69,8 +82,14 @@
   <nav id="mobile-menu" class="hidden max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-stone-200 lg:hidden dark:border-stone-800" aria-label="Мобилна навигация">
     <div class="container-page grid gap-1 py-3">
       <a href="{% url 'courses:levels' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-graduation-cap mr-3 w-5 text-violet-500" aria-hidden="true"></i>Курс</a>
-      <a href="{% url 'courses:listening' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-headphones mr-3 w-5 text-rose-500" aria-hidden="true"></i>Слушане</a>
-      <a href="{% url 'vocabulary:topics' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-book mr-3 w-5 text-amber-500" aria-hidden="true"></i>Речник</a>
+      <p class="px-3 pt-2 text-xs font-black tracking-wide text-stone-500 uppercase dark:text-stone-400">Категории</p>
+      <div class="grid grid-cols-2 gap-1">
+        {% for c in LESSON_CATEGORIES %}
+          <a href="{% url 'courses:category' c.key %}" class="nav-link py-3 text-base"><i class="fa-solid {{ c.icon }} mr-3 w-5 {{ c.text }}" aria-hidden="true"></i>{{ c.label }}</a>
+        {% endfor %}
+        <a href="{% url 'vocabulary:topics' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-layer-group mr-3 w-5 text-amber-600" aria-hidden="true"></i>Думи по теми</a>
+      </div>
+      <div class="my-1 border-t border-stone-200 dark:border-stone-800"></div>
       <a href="{% url 'vocabulary:travel' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-plane mr-3 w-5 text-sky-500" aria-hidden="true"></i>За пътуване</a>
       <a href="{% url 'placement:test' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-list-check mr-3 w-5 text-emerald-500" aria-hidden="true"></i>Тест за ниво</a>
       <a href="{% url 'core:leaderboard' %}" class="nav-link py-3 text-base"><i class="fa-solid fa-trophy mr-3 w-5 text-amber-500" aria-hidden="true"></i>Класация</a>

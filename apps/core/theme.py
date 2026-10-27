@@ -81,17 +81,7 @@ COLOR_CHOICES = [(name, name) for name in THEMES]
 
 LEVEL_COLORS = {"A1": "emerald", "A2": "sky", "B1": "violet", "B2": "amber", "C1": "rose", "C2": "indigo"}
 
-# kind -> (color, Font Awesome icon)
-LESSON_KINDS = {
-    "grammar": ("violet", "fa-spell-check"),
-    "vocabulary": ("amber", "fa-book"),
-    "conversation": ("sky", "fa-comments"),
-    "reading": ("emerald", "fa-book-open-reader"),
-    "listening": ("rose", "fa-headphones"),
-    "pronunciation": ("teal", "fa-microphone-lines"),
-    "speaking": ("indigo", "fa-microphone"),
-    "writing": ("orange", "fa-pen-nib"),
-}
+# Lesson categories (and their colors and icons) live in apps/courses/categories.py.
 
 
 def theme(color):

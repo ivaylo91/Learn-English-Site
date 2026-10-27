@@ -4,12 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from django.http import Http404, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .can_do import CAN_DO
+from .categories import CATEGORIES, all_categories, category
 from .models import Choice, Exercise, Lesson, LessonProgress, Level, UserMistake
 
 PASS_SCORE = 60
@@ -23,6 +24,15 @@ def completed_lesson_ids(user):
     )
 
 
+def category_counts(lessons, done):
+    """Each category with how many of the given lessons it has and how many are completed."""
+    rows = []
+    for cat in all_categories():
+        in_cat = [lesson for lesson in lessons if lesson.kind in cat["kinds"]]
+        rows.append({**cat, "total": len(in_cat), "done": sum(1 for lesson in in_cat if lesson.id in done)})
+    return rows
+
+
 def level_list(request):
     levels = Level.objects.annotate(
         lesson_count=Count("units__lessons", distinct=True, filter=Q(units__lessons__is_published=True)),
@@ -33,7 +43,8 @@ def level_list(request):
     for level in levels:
         level_done = Lesson.objects.filter(unit__level=level, id__in=done).count() if done else 0
         rows.append({"level": level, "done": level_done})
-    return render(request, "courses/level_list.html", {"rows": rows})
+    published = list(Lesson.objects.filter(is_published=True).only("id", "kind"))
+    return render(request, "courses/level_list.html", {"rows": rows, "categories": category_counts(published, done)})
 
 
 def level_detail(request, code):
@@ -44,22 +55,36 @@ def level_detail(request, code):
     done = completed_lesson_ids(request.user)
     for unit in units:
         unit.done_count = sum(1 for lesson in unit.lessons.all() if lesson.id in done)
+    lessons = [lesson for unit in units for lesson in unit.lessons.all()]
+    categories = [c for c in category_counts(lessons, done) if c["total"]]
     return render(
         request,
         "courses/level_detail.html",
-        {"level": level, "units": units, "done": done, "can_do": CAN_DO.get(level.code, [])},
+        {"level": level, "units": units, "done": done, "can_do": CAN_DO.get(level.code, []), "categories": categories},
     )
+
+
+def category_detail(request, key):
+    if key not in CATEGORIES:
+        raise Http404
+    cat = category(key)
+    lessons = (
+        Lesson.objects.filter(is_published=True, kind__in=cat["kinds"])
+        .select_related("unit__level")
+        .annotate(exercise_count=Count("exercises"))
+        .order_by("unit__level__order", "unit__order", "order")
+    )
+    done = completed_lesson_ids(request.user)
+    return render(request, "courses/category.html", {
+        "category": cat, "lessons": lessons, "done": done,
+        "done_count": sum(1 for lesson in lessons if lesson.id in done),
+        "other_categories": [c for c in all_categories() if c["key"] != key],
+    })
 
 
 def listening(request):
-    lessons = (
-        Lesson.objects.filter(is_published=True, kind=Lesson.Kind.LISTENING)
-        .select_related("unit__level")
-        .annotate(exercise_count=Count("exercises"))
-    )
-    return render(
-        request, "courses/listening.html", {"lessons": lessons, "done": completed_lesson_ids(request.user)}
-    )
+    """Old listening page URL; listening is now one of the five categories."""
+    return redirect("courses:category", key="listening", permanent=True)
 
 
 REVIEW_QUESTIONS = 2

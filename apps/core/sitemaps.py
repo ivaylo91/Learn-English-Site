@@ -1,6 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
+from apps.courses.categories import CATEGORIES
 from apps.courses.models import Lesson, Level
 from apps.vocabulary.models import Topic
 
@@ -10,11 +11,14 @@ class StaticSitemap(Sitemap):
     changefreq = "weekly"
 
     def items(self):
-        return ["core:home", "courses:levels", "courses:listening", "vocabulary:topics", "vocabulary:travel",
-                "placement:test", "core:about", "core:faq", "core:privacy", "core:terms"]
+        categories = [("courses:category", key) for key in CATEGORIES]
+        pages = ["core:home", "courses:levels", "vocabulary:topics", "vocabulary:travel",
+                 "placement:test", "core:about", "core:faq", "core:privacy", "core:terms"]
+        return [(name, None) for name in pages] + categories
 
     def location(self, item):
-        return reverse(item)
+        name, key = item
+        return reverse(name, args=[key]) if key else reverse(name)
 
 
 class LevelSitemap(Sitemap):
