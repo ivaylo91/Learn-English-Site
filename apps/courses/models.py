@@ -1,6 +1,7 @@
 import random
 import re
 import unicodedata
+from difflib import SequenceMatcher
 
 from django.conf import settings
 from django.db import models
@@ -16,6 +17,33 @@ def normalize_answer(text):
     text = text.replace("’", "'").replace("‘", "'")
     text = re.sub(r"[.,!?;:\"]", "", text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+SPEECH_MATCH_RATIO = 0.8
+SPELLING_MATCH_RATIO = 0.7
+
+
+def speech_match(heard, target):
+    """True when enough target words were recognised.
+
+    Words are aligned in order. A swapped word still counts when it is spelled almost the same
+    (the recogniser writing Sophia for Sofia), but a different word does not (leave for live), and
+    extra words count against the score.
+    """
+    heard_words, target_words = heard.split(), target.split()
+    if not heard_words or not target_words:
+        return False
+    matched = 0
+    for tag, h1, h2, t1, t2 in SequenceMatcher(None, heard_words, target_words).get_opcodes():
+        if tag == "equal":
+            matched += h2 - h1
+        elif tag == "replace":
+            matched += sum(
+                SequenceMatcher(None, a, b).ratio() >= SPELLING_MATCH_RATIO
+                for a, b in zip(heard_words[h1:h2], target_words[t1:t2])
+            )
+    extra = max(0, len(heard_words) - len(target_words))
+    return (matched - extra) / len(target_words) >= SPEECH_MATCH_RATIO
 
 
 class Level(models.Model):
@@ -66,6 +94,8 @@ class Lesson(models.Model):
         READING = "reading", "Четене"
         LISTENING = "listening", "Слушане"
         PRONUNCIATION = "pronunciation", "Произношение"
+        SPEAKING = "speaking", "Говорене"
+        WRITING = "writing", "Писане"
 
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="lessons", verbose_name="раздел")
     title = models.CharField("заглавие", max_length=120)
@@ -146,6 +176,7 @@ class Exercise(models.Model):
         TRANSLATE = "translate", "Преведи"
         DICTATION = "dictation", "Диктовка"
         ORDER = "order", "Подреди думите"
+        SPEAK = "speak", "Кажи на глас"
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="exercises", verbose_name="урок")
     type = models.CharField("тип", max_length=10, choices=Type.choices, default=Type.CHOICE)
@@ -198,6 +229,9 @@ class Exercise(models.Model):
                 return False
             return self.choices.filter(pk=int(value), is_correct=True).exists()
         given = normalize_answer(str(value))
+        if self.type == self.Type.SPEAK:
+            # Speech recognition is imperfect: accept a close match of the word sequence.
+            return any(speech_match(given, normalize_answer(a)) for a in self.accepted_answers())
         return any(given == normalize_answer(a) for a in self.accepted_answers())
 
 

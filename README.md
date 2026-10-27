@@ -70,6 +70,12 @@ Learners save words from any topic (bookmark icon) into "Моите думи". `
 - **Pronunciation unit**: minimal pairs for th, w/v, short/long vowels and voiced final consonants (`apps/core/seed/pronunciation.py`).
 - `seed_content` updates exercises in place by position, so saved mistakes survive a reseed.
 
+### Exercise type: speak (shadowing)
+
+`speak`: the learner hears the sentence and says it aloud. The browser's speech recognition (Chrome, Edge, Safari) transcribes it; words are aligned in order and a near-identical spelling counts (Sophia/Sofia) but a different word does not (leave/live). At least 80% of the words must match. Browsers without recognition (Firefox) get a "Казах го на глас" self-check button.
+
+Lesson kinds `speaking` (Говорене) and `writing` (Писане) live in the "Говорене и писане" unit of each level (`apps/core/seed/speaking_writing.py`).
+
 ### Exercise type: word order
 
 `order`: the prompt is the Bulgarian sentence, the first accepted answer is the English sentence without punctuation. The learner taps shuffled word tiles to build it.

@@ -5,7 +5,7 @@ from django.db import transaction
 
 from apps.core.seed import (
     courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, more_skills,
-    placement,
+    placement, speaking_writing,
     pronunciation, vocabulary, vocabulary_more,
 )
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
@@ -43,12 +43,12 @@ class Command(BaseCommand):
             levels[level.code] = level
 
         units = (courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + courses_extra.UNITS + courses_skills.UNITS
-                 + pronunciation.UNITS + more_audio.UNITS + listening.UNITS)
+                 + pronunciation.UNITS + more_audio.UNITS + speaking_writing.UNITS + listening.UNITS)
         # Extra lessons for units defined elsewhere, appended after that unit's own lessons (in this order).
         extras = [more_audio.EXTRA_LESSONS, more_skills.EXTRA_LESSONS]
         units = [{**u, "lessons": u["lessons"] + [l for e in extras for l in e.get(u["slug"], [])]} for u in units]
         all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES, **courses_extra.MISTAKES,
-                        **courses_skills.MISTAKES, **more_skills.MISTAKES}
+                        **courses_skills.MISTAKES, **more_skills.MISTAKES, **speaking_writing.MISTAKES}
         lesson_count = 0
         for u in units:
             unit, _ = Unit.objects.update_or_create(

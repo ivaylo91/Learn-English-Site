@@ -239,3 +239,27 @@ class LearningLoopTests(ContentMixin, TestCase):
             {"wrong": "He is doctor.", "right": "He is a doctor.", "why": "Нужен е член."},
             {"wrong": "A", "right": "B", "why": ""},
         ])
+
+
+class SpeakingTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        level = Level.objects.create(code="A1", title="Начинаещи", summary="s", order=1)
+        unit = Unit.objects.create(level=level, title="U", slug="u", order=1)
+        cls.lesson = Lesson.objects.create(unit=unit, title="Speak", slug="speak", kind="speaking")
+        cls.speak = Exercise.objects.create(
+            lesson=cls.lesson, type="speak", prompt="I live in Sofia.", audio_text="I live in Sofia.", answers="I live in Sofia."
+        )
+
+    def test_close_transcripts_pass(self):
+        self.assertTrue(self.speak.is_correct_answer("i live in sofia"))
+        self.assertTrue(self.speak.is_correct_answer("I live in Sophia"))  # recogniser spelling of the name
+        self.assertFalse(self.speak.is_correct_answer("I love"))
+        self.assertFalse(self.speak.is_correct_answer("I leave in Sofia"))  # live/leave is the point of the practice
+        self.assertFalse(self.speak.is_correct_answer("I live in Sofia tomorrow morning please"))
+        self.assertFalse(self.speak.is_correct_answer(""))
+
+    def test_lesson_page_serialises_speak(self):
+        data = self.client.get(self.lesson.get_absolute_url()).context["exercises_json"]
+        self.assertEqual(data[0]["type"], "speak")
+        self.assertEqual(data[0]["audio"], "I live in Sofia.")

@@ -130,6 +130,8 @@
       el.area.appendChild(list);
     } else if (ex.type === "order") {
       el.area.appendChild(orderBuilder(ex.words || []));
+    } else if (ex.type === "speak") {
+      el.area.appendChild(speakBuilder(ex));
     } else {
       var long = ex.type === "translate" || ex.type === "dictation";
       var input = document.createElement(long ? "textarea" : "input");
@@ -155,6 +157,84 @@
       el.area.appendChild(input);
       setTimeout(function () { input.focus(); }, 50);
     }
+  }
+
+  // Speaking exercise: say the sentence aloud; the browser's speech recognition transcribes it.
+  var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function normWords(text) {
+    return String(text || "").toLowerCase().replace(/[’‘]/g, "'").replace(/[.,!?;:"]/g, "").split(/\s+/).filter(Boolean);
+  }
+
+  function speakBuilder(ex) {
+    var wrap = document.createElement("div");
+    wrap.className = "rounded-2xl bg-indigo-50 p-4 dark:bg-indigo-500/10";
+    if (!Recognition) {
+      // No speech recognition (e.g. Firefox): practise aloud and self-check.
+      wrap.innerHTML =
+        '<p class="text-sm font-semibold text-indigo-900 dark:text-indigo-100">Браузърът ти не разпознава реч (опитай с Chrome, Edge или Safari). Кажи изречението на глас и потвърди.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm mt-3" data-self-check><i class="fa-solid fa-check text-indigo-500" aria-hidden="true"></i>Казах го на глас</button>';
+      wrap.querySelector("[data-self-check]").addEventListener("click", function () { setCurrent(ex.prompt); });
+      return wrap;
+    }
+    wrap.innerHTML =
+      '<div class="flex items-center gap-4">' +
+      '<button type="button" class="grid size-16 shrink-0 place-items-center rounded-full bg-indigo-500 text-2xl text-white shadow-[0_4px_0_0_var(--color-indigo-700)] active:translate-y-[3px] active:shadow-[0_1px_0_0_var(--color-indigo-700)] data-[listening]:animate-pulse data-[listening]:bg-red-500" data-mic aria-label="Говори"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>' +
+      '<div class="min-w-0 flex-1"><p class="text-sm font-bold text-indigo-900 dark:text-indigo-100" data-mic-status>Натисни микрофона и кажи изречението.</p>' +
+      '<p class="mt-1 text-lg font-semibold" lang="en" data-heard></p></div></div>';
+    var mic = wrap.querySelector("[data-mic]");
+    var status = wrap.querySelector("[data-mic-status]");
+    var heard = wrap.querySelector("[data-heard]");
+    var target = normWords(ex.prompt);
+
+    function score(text) {
+      var w = normWords(text);
+      return w.filter(function (x) { return target.indexOf(x) !== -1; }).length - Math.abs(w.length - target.length) * 0.5;
+    }
+
+    mic.addEventListener("click", function () {
+      if (!el.next.hidden) return;
+      var rec = new Recognition();
+      rec.lang = "en-GB";
+      rec.interimResults = false;
+      rec.maxAlternatives = 3;
+      mic.setAttribute("data-listening", "");
+      status.textContent = "Слушам...";
+      rec.onresult = function (e) {
+        // Pick the alternative closest to the target sentence.
+        var alts = Array.prototype.slice.call(e.results[0]).map(function (a) { return a.transcript; });
+        alts.sort(function (a, b) { return score(b) - score(a); });
+        heard.textContent = "„" + alts[0] + "“";
+        status.textContent = "Чух:";
+        setCurrent(alts[0]);
+      };
+      rec.onerror = function (e) {
+        status.textContent = e.error === "not-allowed"
+          ? "Няма достъп до микрофона. Разреши го в настройките на браузъра."
+          : "Не чух ясно. Опитай пак.";
+      };
+      rec.onend = function () { mic.removeAttribute("data-listening"); };
+      rec.start();
+    });
+    return wrap;
+  }
+
+  // After checking a spoken answer, colour each target word: green if heard, red if missed.
+  function showWordFeedback(ex, heardText) {
+    var heardWords = normWords(heardText);
+    var line = document.createElement("p");
+    line.className = "mt-3 flex flex-wrap gap-1.5 text-lg font-bold";
+    line.lang = "en";
+    ex.prompt.split(/\s+/).forEach(function (word) {
+      var ok = heardWords.indexOf(normWords(word)[0]) !== -1;
+      var span = document.createElement("span");
+      span.className = "rounded-lg px-2 py-0.5 " + (ok
+        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200"
+        : "bg-red-100 text-red-800 underline decoration-wavy dark:bg-red-500/15 dark:text-red-200");
+      span.textContent = word;
+      line.appendChild(span);
+    });
+    return line;
   }
 
   // Word-order exercise: tap tiles to build the sentence, tap again to remove.
@@ -253,6 +333,9 @@
             if (String(o.dataset.choice) === String(res.correct_choice)) o.classList.add("is-correct");
             else if (o.dataset.choice === current) o.classList.add("is-wrong");
           });
+        } else if (ex.type === "speak") {
+          var box = el.area.firstElementChild;
+          if (box && Recognition) box.appendChild(showWordFeedback(ex, current));
         } else if (ex.type === "order") {
           var line = el.area.querySelector("[data-line]");
           line.classList.remove("border-dashed");
@@ -262,7 +345,7 @@
           input.readOnly = true;
           input.classList.add(res.correct ? "!border-emerald-600" : "!border-red-600");
         }
-        if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && !ex.audio) {
+        if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && ex.type !== "speak" && !ex.audio) {
           // Speak the completed sentence for reinforcement.
           var answerText = ex.type === "choice"
             ? (ex.choices.find(function (c) { return String(c.id) === String(res.correct_choice); }) || {}).text

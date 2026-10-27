@@ -20,6 +20,12 @@ def O(prompt, answer, explanation="", instruction="Подреди думите")
     return {"type": "order", "instruction": instruction, "prompt": prompt, "answers": answer, "explanation": explanation}
 
 
+def S(sentence, explanation="", instruction="Чуй и повтори на глас"):
+    """Speaking (shadowing): hear the sentence, then say it; graded with speech recognition."""
+    return {"type": "speak", "instruction": instruction, "prompt": sentence, "audio": sentence,
+            "answers": sentence, "explanation": explanation}
+
+
 def L(prompt, audio, choices, correct, explanation="", instruction="Слушай и избери"):
     """Listening choice: the learner hears `audio`, then answers `prompt`."""
     return {**C(prompt, choices, correct, explanation, instruction), "audio": audio}

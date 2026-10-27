@@ -89,6 +89,8 @@ LESSON_KINDS = {
     "reading": ("emerald", "fa-book-open-reader"),
     "listening": ("rose", "fa-headphones"),
     "pronunciation": ("teal", "fa-microphone-lines"),
+    "speaking": ("indigo", "fa-microphone"),
+    "writing": ("orange", "fa-pen-nib"),
 }
 
 
