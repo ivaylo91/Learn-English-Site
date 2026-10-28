@@ -1,3 +1,4 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -6,6 +7,8 @@ from django.views.decorators.http import require_GET
 from apps.courses.models import Exercise, Lesson, Level
 from apps.courses.views import category_counts
 from apps.vocabulary.models import Topic, Word
+
+from .metrics import learning_metrics
 
 
 def site_stats():
@@ -32,12 +35,18 @@ def home(request):
     return render(request, "core/home.html", context)
 
 
+@staff_member_required
+def metrics(request):
+    return render(request, "core/metrics.html", learning_metrics())
+
+
 @require_GET
 def robots_txt(request):
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
         "Disallow: /accounts/",
+        "Disallow: /staff/",
         "Disallow: /vocabulary/review/",
         "Disallow: /vocabulary/my-words/",
         f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",

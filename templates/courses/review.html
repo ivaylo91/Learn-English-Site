@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Преговор | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container-page max-w-4xl py-10 md:py-14">
+  <span class="grid size-16 place-items-center rounded-2xl bg-violet-600 text-3xl text-white shadow-[0_4px_0_0_var(--color-violet-800)]"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
+  <h1 class="mt-6 text-3xl font-black tracking-tight md:text-4xl">Преговор</h1>
+  <p class="mt-3 max-w-[60ch] text-lg font-semibold text-stone-600 dark:text-stone-400">
+    Наученото се запомня, когато се връщаш към него. Тук са думите за днес, грешките ти и уроците, които си заслужава да повториш.
+  </p>
+
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    <a href="{% if deck_size %}{% url 'vocabulary:review' %}{% else %}{% url 'vocabulary:topics' %}{% endif %}" class="card card-link flex items-center gap-4 border-amber-200 bg-amber-50 p-5 hover:border-amber-400 dark:border-amber-500/30 dark:bg-amber-500/10">
+      <span class="grid size-14 shrink-0 place-items-center rounded-2xl bg-amber-400 text-2xl text-amber-950"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
+      <span class="flex-1">
+        <span class="block text-lg font-black">Думи</span>
+        <span class="text-sm font-bold text-stone-600 dark:text-stone-400">
+          {% if not deck_size %}Запази думи от речника, за да започнеш.{% elif due_words %}{{ due_words }} {% if due_words == 1 %}дума чака{% else %}думи чакат{% endif %} днес{% else %}Всичко за днес е преговорено.{% endif %}
+        </span>
+        {% if deck_size %}<span class="mt-1 block text-xs font-bold text-stone-500 dark:text-stone-400">{{ mastered_words }} от {{ deck_size }} са научени</span>{% endif %}
+      </span>
+      <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+    </a>
+
+    <a href="{% url 'courses:mistakes' %}" class="card card-link flex items-center gap-4 border-red-200 bg-red-50 p-5 hover:border-red-400 dark:border-red-500/30 dark:bg-red-500/10">
+      <span class="grid size-14 shrink-0 place-items-center rounded-2xl bg-red-500 text-2xl text-white"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+      <span class="flex-1">
+        <span class="block text-lg font-black">Грешки</span>
+        <span class="text-sm font-bold text-stone-600 dark:text-stone-400">
+          {% if open_mistakes %}{{ open_mistakes }} {% if open_mistakes == 1 %}задача чака{% else %}задачи чакат{% endif %} втори опит{% else %}Няма грешки за поправяне.{% endif %}
+        </span>
+        {% if fixed_mistakes %}<span class="mt-1 block text-xs font-bold text-stone-500 dark:text-stone-400">{{ fixed_mistakes }} вече поправени</span>{% endif %}
+      </span>
+      <i class="fa-solid fa-chevron-right text-stone-400" aria-hidden="true"></i>
+    </a>
+  </div>
+
+  <section class="card mt-8 p-6" aria-labelledby="strengthen-title">
+    <h2 id="strengthen-title" class="text-lg font-black">Уроци за повторение</h2>
+    <p class="mt-1 text-sm font-semibold text-stone-600 dark:text-stone-400">Незавършени уроци и уроци с резултат под {{ strong_score }}%.</p>
+    {% if to_strengthen %}
+      <ul class="mt-5 divide-y divide-stone-100 dark:divide-stone-800">
+        {% for p in to_strengthen %}
+          <li>
+            <a href="{{ p.lesson.get_absolute_url }}" class="flex items-center gap-4 py-3 hover:opacity-80">
+              <span class="grid size-10 shrink-0 place-items-center rounded-xl {{ p.lesson.kind_theme.soft }}"><i class="fa-solid {{ p.lesson.kind_theme.icon }}" aria-hidden="true"></i></span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-bold">{{ p.lesson.title }}</span>
+                <span class="text-xs font-bold text-stone-500 dark:text-stone-400">{{ p.lesson.unit.level.code }} · {{ p.lesson.kind_theme.label }}</span>
+              </span>
+              {% if p.completed_at %}
+                <span class="badge shrink-0 bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">{{ p.best_score }}%</span>
+              {% elif p.attempts %}
+                <span class="badge shrink-0 bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-200">не е минат</span>
+              {% else %}
+                <span class="badge badge-muted shrink-0">започнат</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-4 font-semibold text-stone-600 dark:text-stone-400">Всички уроци, които си започнал/а, са завършени с поне {{ strong_score }}%. Браво!</p>
+    {% endif %}
+  </section>
+
+  <p class="mt-8 text-center text-sm font-semibold text-stone-600 dark:text-stone-400">
+    <a href="{% url 'accounts:progress' %}" class="text-brand-700 hover:underline dark:text-brand-400">Виж целия си напредък</a>
+  </p>
+</div>
+{% endblock %}

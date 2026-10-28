@@ -6,7 +6,7 @@ from django.db import transaction
 from apps.core.seed import (
     batch5, batch6, batch7, batch8, courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, more_skills,
     placement, speaking_writing,
-    pronunciation, vocabulary, vocabulary_more,
+    pronunciation, vocabulary, vocabulary_more, writing_tasks,
 )
 from apps.courses.models import Choice, Exercise, Lesson, Level, Unit
 from apps.placement.models import PlacementChoice, PlacementQuestion
@@ -79,7 +79,8 @@ class Command(BaseCommand):
                                   "dialogue": l.get("dialogue", ""),
                                   "mistakes": "\n".join(" | ".join(m) for m in all_mistakes.get(l["slug"], []))},
                     )
-                    self.seed_exercises(lesson, l["exercises"])
+                    tasks = [writing_tasks.TASKS[l["slug"]]] if l["slug"] in writing_tasks.TASKS else []
+                    self.seed_exercises(lesson, l["exercises"] + tasks)
                     lesson_count += 1
         self.stdout.write(f"  {len(levels)} levels, {len(units)} units, {lesson_count} lessons")
 

@@ -9,6 +9,7 @@ urlpatterns = [
     path("listening/", views.listening, name="listening"),
     path("category/<slug:key>/", views.category_detail, name="category"),
     path("check/", views.check_any, name="check_any"),
+    path("review/", views.review, name="review"),
     path("mistakes/", views.mistakes, name="mistakes"),
     path("mistakes/complete/", views.complete_mistakes, name="mistakes_complete"),
     path("level/<str:code>/", views.level_detail, name="level"),

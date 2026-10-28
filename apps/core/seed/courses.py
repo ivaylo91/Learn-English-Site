@@ -26,6 +26,12 @@ def S(sentence, explanation="", instruction="Чуй и повтори на гл�
             "answers": sentence, "explanation": explanation}
 
 
+def W(prompt, model, checklist, instruction="Напиши свой текст"):
+    """Free writing: the learner writes, then compares with the model answer and ticks the checklist."""
+    return {"type": "write", "instruction": instruction, "prompt": prompt, "answers": model,
+            "explanation": " | ".join(checklist)}
+
+
 def L(prompt, audio, choices, correct, explanation="", instruction="Слушай и избери"):
     """Listening choice: the learner hears `audio`, then answers `prompt`."""
     return {**C(prompt, choices, correct, explanation, instruction), "audio": audio}

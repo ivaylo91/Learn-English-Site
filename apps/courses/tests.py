@@ -283,3 +283,83 @@ class SpeakingTests(TestCase):
         data = self.client.get(self.lesson.get_absolute_url()).context["exercises_json"]
         self.assertEqual(data[0]["type"], "speak")
         self.assertEqual(data[0]["audio"], "I live in Sofia.")
+
+
+class FreeWritingTests(ContentMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.write_ex = Exercise.objects.create(
+            lesson=cls.lesson, type="write", prompt="Опиши деня си.", order=4,
+            answers="I get up at seven and have breakfast. I start work at nine.",
+            explanation="Часове с at | Present Simple",
+        )
+
+    def setUp(self):
+        self.user = User.objects.create_user("writer@example.com", "pass")
+        self.client.force_login(self.user)
+
+    def test_long_enough_text_counts(self):
+        self.assertEqual(self.write_ex.min_words(), 6)
+        self.assertTrue(self.write_ex.is_correct_answer("I wake up at eight and drink coffee."))
+        self.assertFalse(self.write_ex.is_correct_answer("I wake up."))
+
+    def test_check_returns_model_answer_and_checklist(self):
+        res = self.post_json("courses:check", {"exercise": self.write_ex.id, "answer": "Short."}).json()
+        self.assertFalse(res["correct"])
+        self.assertEqual(res["checklist"], ["Часове с at", "Present Simple"])
+        self.assertTrue(res["correct_answer"].startswith("I get up"))
+
+    def test_writing_never_goes_to_mistakes_deck(self):
+        self.post_json("courses:check", {"exercise": self.write_ex.id, "answer": "Short."})
+        self.assertFalse(self.user.mistakes.exists())
+
+    def test_first_answer_marks_lesson_started(self):
+        self.post_json("courses:check", {"exercise": self.fill_ex.id, "answer": "are"})
+        progress = LessonProgress.objects.get(user=self.user, lesson=self.lesson)
+        self.assertIsNone(progress.completed_at)
+        self.assertEqual(progress.attempts, 0)
+
+
+class ReviewAndProgressPageTests(ContentMixin, TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("pages@example.com", "pass")
+        self.client.force_login(self.user)
+
+    def test_review_lists_unfinished_and_weak_lessons(self):
+        LessonProgress.objects.create(user=self.user, lesson=self.lesson, best_score=40, attempts=1)
+        response = self.client.get(reverse("courses:review"))
+        self.assertContains(response, self.lesson.title)
+        self.assertContains(response, "не е минат")
+
+    def test_progress_shows_completed_lessons_and_skills(self):
+        LessonProgress.objects.create(
+            user=self.user, lesson=self.lesson, best_score=90, attempts=1, completed_at=timezone.now()
+        )
+        self.user.add_xp(10)
+        response = self.client.get(reverse("accounts:progress"))
+        self.assertContains(response, self.lesson.title)
+        self.assertEqual(response.context["average_score"], 90)
+        self.assertEqual(response.context["active_days"], 1)
+
+    def test_pages_need_login(self):
+        self.client.logout()
+        for name in ("courses:review", "accounts:progress"):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 302)
+
+
+class MetricsPageTests(ContentMixin, TestCase):
+    def test_staff_only(self):
+        learner = User.objects.create_user("learner@example.com", "pass")
+        self.client.force_login(learner)
+        self.assertEqual(self.client.get(reverse("core:metrics")).status_code, 302)
+
+    def test_counts_starts_and_completions(self):
+        learner = User.objects.create_user("learner2@example.com", "pass")
+        LessonProgress.objects.create(user=learner, lesson=self.lesson, attempts=1, completed_at=timezone.now())
+        staff = User.objects.create_user("staff@example.com", "pass", is_staff=True)
+        self.client.force_login(staff)
+        response = self.client.get(reverse("core:metrics"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["started"], 1)
+        self.assertEqual(response.context["completion_rate"], 100)

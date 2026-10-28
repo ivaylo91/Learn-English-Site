@@ -1,7 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from datetime import timedelta
+
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDate
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -11,6 +14,7 @@ from apps.vocabulary.models import SavedWord, Topic
 
 from .achievements import achievements_for, week_start, weekly_leaderboard
 from .forms import ProfileForm, SignupForm
+from .models import XPEvent
 
 
 def signup(request):
@@ -41,19 +45,25 @@ def next_lesson_for(user):
     return lessons.first()
 
 
+def level_progress(completed_ids):
+    """Each level with its published lesson count and how many of them are completed."""
+    levels = Level.objects.annotate(
+        total=Count("units__lessons", filter=Q(units__lessons__is_published=True))
+    ).order_by("order")
+    return [
+        {"level": level, "total": level.total,
+         "done": Lesson.objects.filter(unit__level=level, id__in=completed_ids).count()}
+        for level in levels
+    ]
+
+
 @login_required
 def dashboard(request):
     user = request.user
     completed_ids = set(
         LessonProgress.objects.filter(user=user, completed_at__isnull=False).values_list("lesson_id", flat=True)
     )
-    levels = Level.objects.annotate(
-        total=Count("units__lessons", filter=Q(units__lessons__is_published=True))
-    ).order_by("order")
-    level_rows = []
-    for level in levels:
-        done = Lesson.objects.filter(unit__level=level, id__in=completed_ids).count()
-        level_rows.append({"level": level, "done": done, "total": level.total})
+    level_rows = level_progress(completed_ids)
 
     xp_today = user.xp_today()
     recent = (
@@ -77,6 +87,53 @@ def dashboard(request):
     }
     context["earned_count"] = sum(1 for a in context["achievements"] if a["earned"])
     return render(request, "accounts/dashboard.html", context)
+
+
+ACTIVITY_DAYS = 14
+
+
+@login_required
+def progress(request):
+    """Completed lessons, skill development per category and recent activity."""
+    user = request.user
+    completed = list(
+        LessonProgress.objects.filter(user=user, completed_at__isnull=False)
+        .select_related("lesson__unit__level")
+        .order_by("-completed_at")
+    )
+    completed_ids = {p.lesson_id for p in completed}
+    published = list(Lesson.objects.filter(is_published=True).only("id", "kind"))
+    skills = category_counts(published, completed_ids)
+    for skill in skills:
+        scores = [p.best_score for p in completed if p.lesson.kind in skill["kinds"]]
+        skill["average"] = round(sum(scores) / len(scores)) if scores else None
+
+    today = timezone.localdate()
+    first_day = today - timedelta(days=ACTIVITY_DAYS - 1)
+    xp_by_day = dict(
+        XPEvent.objects.filter(user=user, created_at__date__gte=first_day)
+        .annotate(day=TruncDate("created_at")).values("day").annotate(total=Sum("amount")).values_list("day", "total")
+    )
+    activity = [{"day": first_day + timedelta(days=i)} for i in range(ACTIVITY_DAYS)]
+    peak = max([xp_by_day.get(a["day"], 0) for a in activity] + [1])
+    for a in activity:
+        a["xp"] = xp_by_day.get(a["day"], 0)
+        a["percent"] = round(a["xp"] * 100 / peak)
+
+    words = SavedWord.objects.filter(user=user)
+    scores = [p.best_score for p in completed]
+    return render(request, "accounts/progress.html", {
+        "completed": completed,
+        "average_score": round(sum(scores) / len(scores)) if scores else None,
+        "skills": skills,
+        "level_rows": level_progress(completed_ids),
+        "activity": activity,
+        "active_days": sum(1 for a in activity if a["xp"]),
+        "activity_days": ACTIVITY_DAYS,
+        "deck_size": words.count(),
+        "mastered_words": words.filter(box__gte=SavedWord.MAX_BOX).count(),
+        "fixed_mistakes": UserMistake.objects.filter(user=user, resolved_at__isnull=False).count(),
+    })
 
 
 def leaderboard(request):

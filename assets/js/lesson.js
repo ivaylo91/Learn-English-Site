@@ -96,7 +96,8 @@
 
     // Read the English prompt aloud (not for Bulgarian prompts or audio exercises).
     var canSpeak = !!(window.govori && window.govori.canSpeak);
-    el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || ex.type === "order" || !!ex.audio;
+    el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || ex.type === "order" ||
+      ex.type === "write" || !!ex.audio;
 
     if (ex.audio) {
       el.area.appendChild(audioBar(ex.audio, canSpeak));
@@ -132,6 +133,8 @@
       el.area.appendChild(orderBuilder(ex.words || []));
     } else if (ex.type === "speak") {
       el.area.appendChild(speakBuilder(ex));
+    } else if (ex.type === "write") {
+      el.area.appendChild(writeBuilder(ex));
     } else {
       var long = ex.type === "translate" || ex.type === "dictation";
       var input = document.createElement(long ? "textarea" : "input");
@@ -157,6 +160,58 @@
       el.area.appendChild(input);
       setTimeout(function () { input.focus(); }, 50);
     }
+  }
+
+  // Free writing: a text area with a live word count; checking unlocks once the text is long enough.
+  function countWords(text) {
+    return (String(text).match(/[A-Za-z']+/g) || []).length;
+  }
+
+  function writeBuilder(ex) {
+    var wrap = document.createElement("div");
+    var input = document.createElement("textarea");
+    input.className = "field-input text-lg";
+    input.rows = 6;
+    input.setAttribute("lang", "en");
+    input.setAttribute("aria-label", "Твоят текст");
+    input.setAttribute("aria-describedby", "write-count");
+    input.placeholder = "Напиши своя текст на английски";
+    var count = document.createElement("p");
+    count.id = "write-count";
+    count.className = "mt-2 text-sm font-bold text-stone-500 dark:text-stone-400";
+    count.setAttribute("aria-live", "polite");
+    var min = ex.min_words || 5;
+
+    function update() {
+      var n = countWords(input.value);
+      count.textContent = n + " " + (n === 1 ? "дума" : "думи") + (n < min ? " (поне " + min + ")" : "");
+      setCurrent(n >= min ? input.value : null);
+    }
+    input.addEventListener("input", update);
+    update();
+    wrap.appendChild(input);
+    wrap.appendChild(count);
+    setTimeout(function () { input.focus(); }, 50);
+    return wrap;
+  }
+
+  // After free writing: the model answer and a self-check list instead of right/wrong.
+  function showWriteFeedback(res) {
+    el.feedback.className = "mt-5 rounded-xl bg-sky-50 px-4 py-3 text-sky-950 dark:bg-sky-950/50 dark:text-sky-100";
+    var html = '<p class="font-semibold"><i class="fa-solid fa-pen-nib mr-2" aria-hidden="true"></i>Сравни своя текст с примерния отговор.</p>';
+    if (res.correct_answer) {
+      html += '<blockquote class="mt-3 rounded-xl border-l-4 border-sky-400 bg-white/70 px-4 py-3 font-semibold dark:bg-stone-900/50" lang="en">' +
+        escapeHtml(res.correct_answer) + "</blockquote>";
+    }
+    if (res.checklist && res.checklist.length) {
+      html += '<p class="mt-3 text-sm font-bold">Провери себе си:</p><ul class="mt-2 grid gap-2">';
+      res.checklist.forEach(function (item, i) {
+        html += '<li><label class="flex cursor-pointer items-start gap-2 text-sm"><input type="checkbox" class="mt-0.5 size-4 accent-sky-600" id="check-' + i + '">' +
+          "<span>" + escapeHtml(item) + "</span></label></li>";
+      });
+      html += "</ul>";
+    }
+    el.feedback.innerHTML = html;
   }
 
   // Speaking exercise: say the sentence aloud; the browser's speech recognition transcribes it.
@@ -345,14 +400,16 @@
           input.readOnly = true;
           input.classList.add(res.correct ? "!border-emerald-600" : "!border-red-600");
         }
-        if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && ex.type !== "speak" && !ex.audio) {
+        if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && ex.type !== "speak" &&
+            ex.type !== "write" && !ex.audio) {
           // Speak the completed sentence for reinforcement.
           var answerText = ex.type === "choice"
             ? (ex.choices.find(function (c) { return String(c.id) === String(res.correct_choice); }) || {}).text
             : res.correct_answer;
           window.govori.speak(ex.prompt.replace(/_{3,}/g, answerText || ""));
         }
-        showFeedback(res);
+        if (ex.type === "write") showWriteFeedback(res);
+        else showFeedback(res);
         el.check.hidden = true;
         el.next.hidden = false;
         el.next.focus();

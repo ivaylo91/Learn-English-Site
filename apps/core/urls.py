@@ -13,4 +13,5 @@ urlpatterns = [
     path("faq/", views.faq, name="faq"),
     path("privacy/", views.page, {"template": "core/privacy.html"}, name="privacy"),
     path("terms/", views.page, {"template": "core/terms.html"}, name="terms"),
+    path("staff/metrics/", views.metrics, name="metrics"),
 ]

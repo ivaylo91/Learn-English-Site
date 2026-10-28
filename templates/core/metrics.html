@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Метрики | {{ SITE_NAME }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<div class="container-page py-10 md:py-14">
+  <h1 class="text-3xl font-black tracking-tight md:text-4xl">Метрики на обучението</h1>
+  <p class="mt-2 max-w-[70ch] font-semibold text-stone-600 dark:text-stone-400">
+    Започват ли учащите уроци, завършват ли ги, връщат ли се и подобряват ли се при преговора. Само обобщени данни, без служебни профили.
+    Започнатите уроци се отчитат от първия отговор в урока.
+  </p>
+
+  <h2 class="mt-10 text-lg font-black">Учащи</h2>
+  <dl class="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Регистрирани</dt><dd class="mt-1 text-3xl font-black">{{ learners }}</dd><dd class="text-xs font-bold text-stone-500 dark:text-stone-400">+{{ new_learners }} за 30 дни</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Активни тази седмица</dt><dd class="mt-1 text-3xl font-black">{{ active_week }}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Започнали поне един урок</dt><dd class="mt-1 text-3xl font-black">{% if activation_rate is not None %}{{ activation_rate }}%{% else %}–{% endif %}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Връщат се (2+ дни)</dt><dd class="mt-1 text-3xl font-black">{% if return_rate is not None %}{{ return_rate }}%{% else %}–{% endif %}</dd><dd class="text-xs font-bold text-stone-500 dark:text-stone-400">от {{ cohort }} с поне 7 дни стаж</dd></div>
+  </dl>
+
+  <h2 class="mt-10 text-lg font-black">Уроци</h2>
+  <dl class="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Започнати</dt><dd class="mt-1 text-3xl font-black">{{ started }}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Завършени</dt><dd class="mt-1 text-3xl font-black">{{ completed }}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Завършват</dt><dd class="mt-1 text-3xl font-black">{% if completion_rate is not None %}{{ completion_rate }}%{% else %}–{% endif %}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Опити до успех</dt><dd class="mt-1 text-3xl font-black">{{ attempts_per_pass|default:"–" }}</dd></div>
+  </dl>
+
+  <h2 class="mt-10 text-lg font-black">Преговор</h2>
+  <dl class="mt-3 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Поправени грешки</dt><dd class="mt-1 text-3xl font-black">{% if mistakes_fixed_rate is not None %}{{ mistakes_fixed_rate }}%{% else %}–{% endif %}</dd><dd class="text-xs font-bold text-stone-500 dark:text-stone-400">от {{ mistakes_total }} грешки</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Точност при думите</dt><dd class="mt-1 text-3xl font-black">{% if word_accuracy is not None %}{{ word_accuracy }}%{% else %}–{% endif %}</dd><dd class="text-xs font-bold text-stone-500 dark:text-stone-400">{{ word_reviews }} прегледа</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Запазени думи</dt><dd class="mt-1 text-3xl font-black">{{ words_saved }}</dd></div>
+    <div class="card p-5"><dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Научени думи</dt><dd class="mt-1 text-3xl font-black">{{ words_mastered }}</dd></div>
+  </dl>
+
+  <div class="mt-10 grid gap-6 lg:grid-cols-2">
+    <section class="card p-6" aria-labelledby="drop-title">
+      <h2 id="drop-title" class="text-lg font-black">Уроци, които се изоставят</h2>
+      <p class="mt-1 text-sm font-semibold text-stone-600 dark:text-stone-400">Най-нисък дял завършвания (поне {{ min_starts }} започвания). Кандидати за по-ясно съдържание.</p>
+      {% if drop_off %}
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead><tr class="text-stone-500 dark:text-stone-400"><th class="py-2 pr-3 font-bold">Урок</th><th class="py-2 pr-3 font-bold">Започнали</th><th class="py-2 font-bold">Завършили</th></tr></thead>
+            <tbody class="divide-y divide-stone-100 dark:divide-stone-800">
+              {% for row in drop_off %}
+                <tr><td class="py-2 pr-3"><a href="{{ row.lesson.get_absolute_url }}" class="font-bold hover:underline">{{ row.lesson.title }}</a> <span class="text-xs font-bold text-stone-500">{{ row.lesson.unit.level.code }}</span></td><td class="py-2 pr-3">{{ row.starts }}</td><td class="py-2">{{ row.completions }} ({{ row.rate }}%)</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="mt-4 font-semibold text-stone-600 dark:text-stone-400">Още няма достатъчно данни.</p>
+      {% endif %}
+    </section>
+
+    <section class="card p-6" aria-labelledby="hard-title">
+      <h2 id="hard-title" class="text-lg font-black">Най-трудни задачи</h2>
+      <p class="mt-1 text-sm font-semibold text-stone-600 dark:text-stone-400">Задачи, в които грешат най-много учащи. Провери инструкцията и отговорите.</p>
+      {% if hardest %}
+        <ul class="mt-4 divide-y divide-stone-100 dark:divide-stone-800">
+          {% for e in hardest %}
+            <li class="flex items-start justify-between gap-3 py-2 text-sm">
+              <span class="min-w-0"><span class="block font-bold" lang="en">{{ e.prompt|truncatechars:80 }}</span><a href="{{ e.lesson.get_absolute_url }}" class="text-xs font-bold text-stone-500 hover:underline">{{ e.lesson.title }}</a></span>
+              <span class="badge shrink-0 bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-200">{{ e.learners }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mt-4 font-semibold text-stone-600 dark:text-stone-400">Още няма записани грешки.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card mt-6 p-6" aria-labelledby="cat-title">
+    <h2 id="cat-title" class="text-lg font-black">Завършени уроци по категории</h2>
+    <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {% for c in categories %}
+        <li class="rounded-2xl p-4 {{ c.soft }}"><i class="fa-solid {{ c.icon }}" aria-hidden="true"></i> <span class="font-bold">{{ c.label }}</span><span class="mt-1 block text-2xl font-black">{{ c.completed }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

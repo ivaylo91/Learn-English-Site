@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -11,6 +11,8 @@ from django.views.decorators.http import require_POST
 
 from .can_do import CAN_DO
 from .categories import CATEGORIES, all_categories, category
+from apps.vocabulary.models import SavedWord
+
 from .models import Choice, Exercise, Lesson, LessonProgress, Level, UserMistake
 
 PASS_SCORE = 60
@@ -106,6 +108,8 @@ def serialize_exercise(exercise, review_of=None):
         data["choices"] = [{"id": c.id, "text": c.text} for c in exercise.choices.all()]
     elif exercise.type == Exercise.Type.ORDER:
         data["words"] = exercise.word_tiles()
+    elif exercise.type == Exercise.Type.WRITE:
+        data["min_words"] = exercise.min_words()
     return data
 
 
@@ -125,6 +129,7 @@ def review_exercises(user, lesson):
         accessible_exercises(user)
         .filter(lesson__progress__user=user, lesson__progress__completed_at__isnull=False)
         .exclude(lesson=lesson)
+        .exclude(type=Exercise.Type.WRITE)
         .select_related("lesson")
         .prefetch_related("choices")
         .order_by("?")[:REVIEW_QUESTIONS]
@@ -183,8 +188,8 @@ def parse_json(request):
 
 
 def record_attempt(user, exercise, correct):
-    """Keep the learner's mistakes deck up to date."""
-    if not user.is_authenticated:
+    """Keep the learner's mistakes deck up to date (free writing has no single right answer to retry)."""
+    if not user.is_authenticated or exercise.type == Exercise.Type.WRITE:
         return
     now = timezone.now()
     if correct:
@@ -207,6 +212,9 @@ def check_response(request, exercise, answer):
             Choice.objects.filter(exercise=exercise, is_correct=True).values_list("id", flat=True).first()
         )
     response["correct_answer"] = (exercise.accepted_answers() or [""])[0]
+    if exercise.type == Exercise.Type.WRITE:
+        response["checklist"] = exercise.checklist()
+        response["min_words"] = exercise.min_words()
     return JsonResponse(response)
 
 
@@ -230,6 +238,9 @@ def check_exercise(request, slug):
     )
     if exercise.lesson.is_locked_for(request.user):
         raise Http404
+    if request.user.is_authenticated:
+        # The first answered exercise marks the lesson as started (completed_at stays empty until a pass).
+        LessonProgress.objects.get_or_create(user=request.user, lesson=exercise.lesson)
     return check_response(request, exercise, data.get("answer", ""))
 
 
@@ -266,6 +277,33 @@ def complete_lesson(request, slug):
                 result["xp"] = xp
         result.update(saved=True, streak=user.current_streak, total_xp=user.xp)
     return JsonResponse(result)
+
+
+STRONG_SCORE = 80
+REVIEW_LESSONS = 8
+
+
+@login_required
+def review(request):
+    """One place to revisit what needs work: words due today, past mistakes and lessons to strengthen."""
+    user = request.user
+    words = SavedWord.objects.filter(user=user)
+    # Unfinished lessons first, then finished ones with a low best score.
+    to_strengthen = (
+        LessonProgress.objects.filter(user=user, lesson__is_published=True)
+        .filter(Q(completed_at__isnull=True) | Q(best_score__lt=STRONG_SCORE))
+        .select_related("lesson__unit__level")
+        .order_by(F("completed_at").asc(nulls_first=True), "best_score", "-updated_at")[:REVIEW_LESSONS]
+    )
+    return render(request, "courses/review.html", {
+        "due_words": words.filter(due_date__lte=timezone.localdate()).count(),
+        "deck_size": words.count(),
+        "mastered_words": words.filter(box__gte=SavedWord.MAX_BOX).count(),
+        "open_mistakes": UserMistake.objects.filter(user=user, resolved_at__isnull=True).count(),
+        "fixed_mistakes": UserMistake.objects.filter(user=user, resolved_at__isnull=False).count(),
+        "to_strengthen": to_strengthen,
+        "strong_score": STRONG_SCORE,
+    })
 
 
 @login_required

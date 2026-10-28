@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Моят напредък | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<div class="container-page py-10 md:py-14">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight md:text-4xl">Моят напредък</h1>
+      <p class="mt-2 font-semibold text-stone-600 dark:text-stone-400">Какво си научил/а досега и в кои умения растеш.</p>
+    </div>
+    <a href="{% url 'courses:review' %}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Преговор</a>
+  </div>
+
+  <dl class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="card p-5">
+      <dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Завършени уроци</dt>
+      <dd class="mt-1 text-3xl font-black">{{ completed|length }}</dd>
+    </div>
+    <div class="card p-5">
+      <dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Среден резултат</dt>
+      <dd class="mt-1 text-3xl font-black">{% if average_score is not None %}{{ average_score }}%{% else %}–{% endif %}</dd>
+    </div>
+    <div class="card p-5">
+      <dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Научени думи</dt>
+      <dd class="mt-1 text-3xl font-black">{{ mastered_words }}<span class="text-base font-bold text-stone-500 dark:text-stone-400"> / {{ deck_size }}</span></dd>
+    </div>
+    <div class="card p-5">
+      <dt class="text-sm font-bold text-stone-600 dark:text-stone-400">Поправени грешки</dt>
+      <dd class="mt-1 text-3xl font-black">{{ fixed_mistakes }}</dd>
+    </div>
+  </dl>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-2">
+    <section class="card p-6" aria-labelledby="skills-title">
+      <h2 id="skills-title" class="text-lg font-black">Умения</h2>
+      <ul class="mt-5 space-y-5">
+        {% for s in skills %}
+          <li>
+            <a href="{% url 'courses:category' s.key %}" class="flex items-center gap-4 hover:opacity-80">
+              <span class="grid size-10 shrink-0 place-items-center rounded-xl {{ s.soft }}"><i class="fa-solid {{ s.icon }}" aria-hidden="true"></i></span>
+              <span class="flex-1">
+                <span class="flex flex-wrap justify-between gap-x-3 text-sm">
+                  <span class="font-bold">{{ s.label }}</span>
+                  <span class="font-semibold text-stone-500 dark:text-stone-400">{{ s.done }}/{{ s.total }} урока{% if s.average is not None %} · среден {{ s.average }}%{% endif %}</span>
+                </span>
+                <span class="mt-1.5 block h-2 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800" aria-hidden="true">
+                  <span class="block h-full rounded-full {{ s.bar }}" style="width: {% if s.total %}{% widthratio s.done s.total 100 %}{% else %}0{% endif %}%"></span>
+                </span>
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card p-6" aria-labelledby="activity-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="activity-title" class="text-lg font-black">Активност</h2>
+        <span class="text-sm font-bold text-stone-500 dark:text-stone-400">{{ active_days }} от последните {{ activity_days }} дни</span>
+      </div>
+      <ol class="mt-6 flex h-36 items-end gap-1 sm:gap-1.5">
+        {% for a in activity %}
+          <li class="flex h-full flex-1 flex-col items-center justify-end gap-1.5" title="{{ a.day|date:'j E'|lower }}: {{ a.xp }} XP">
+            <span class="w-full rounded-t-md {% if a.xp %}bg-brand-500{% else %}bg-stone-100 dark:bg-stone-800{% endif %}" style="height: {% if a.xp %}{{ a.percent }}%{% else %}4px{% endif %}"></span>
+            <span class="text-[0.65rem] font-bold text-stone-500 dark:text-stone-400" aria-hidden="true">{{ a.day|date:"j" }}</span>
+            <span class="sr-only">{{ a.day|date:"j E"|lower }}: {{ a.xp }} XP</span>
+          </li>
+        {% endfor %}
+      </ol>
+      <p class="mt-4 text-sm font-semibold text-stone-600 dark:text-stone-400">
+        Серия: {{ user.current_streak }} {% if user.current_streak == 1 %}ден{% else %}дни{% endif %} (рекорд {{ user.longest_streak }}) · общо {{ user.xp|intcomma }} XP
+      </p>
+    </section>
+  </div>
+
+  <section class="card mt-6 p-6" aria-labelledby="levels-title">
+    <h2 id="levels-title" class="text-lg font-black">Нива</h2>
+    <ul class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for row in level_rows %}
+        <li>
+          <a href="{{ row.level.get_absolute_url }}" class="flex items-center gap-4 rounded-lg hover:opacity-80">
+            <span class="grid size-9 place-items-center rounded-xl text-sm font-black {{ row.level.theme.solid }}">{{ row.level.code }}</span>
+            <span class="flex-1">
+              <span class="flex justify-between text-sm"><span class="font-medium">{{ row.level.title }}</span><span class="text-stone-500 dark:text-stone-400">{{ row.done }}/{{ row.total }}</span></span>
+              <span class="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                <span class="block h-full rounded-full {{ row.level.theme.bar }}" style="width: {% if row.total %}{% widthratio row.done row.total 100 %}{% else %}0{% endif %}%"></span>
+              </span>
+            </span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card mt-6 p-6" aria-labelledby="done-title">
+    <h2 id="done-title" class="text-lg font-black">Завършени уроци</h2>
+    {% if completed %}
+      <ul class="mt-4 divide-y divide-stone-100 dark:divide-stone-800">
+        {% for p in completed %}
+          <li>
+            <a href="{{ p.lesson.get_absolute_url }}" class="flex items-center gap-4 py-3 hover:opacity-80">
+              <span class="grid size-10 shrink-0 place-items-center rounded-xl {{ p.lesson.kind_theme.soft }}"><i class="fa-solid {{ p.lesson.kind_theme.icon }}" aria-hidden="true"></i></span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-bold">{{ p.lesson.title }}</span>
+                <span class="text-xs font-bold text-stone-500 dark:text-stone-400">{{ p.lesson.unit.level.code }} · {{ p.lesson.kind_theme.label }} · {{ p.completed_at|date:"j E Y"|lower }}</span>
+              </span>
+              <span class="badge shrink-0 {% if p.best_score >= 80 %}bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200{% else %}bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200{% endif %}">{{ p.best_score }}%</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-3 font-semibold text-stone-600 dark:text-stone-400">Тук ще виждаш уроците, които завършиш.</p>
+      <a href="{% url 'courses:levels' %}" class="btn btn-primary mt-5">Към курса</a>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

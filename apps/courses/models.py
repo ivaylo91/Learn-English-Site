@@ -23,6 +23,7 @@ def normalize_answer(text):
 
 SPEECH_MATCH_RATIO = 0.8
 SPELLING_MATCH_RATIO = 0.7
+MIN_WRITE_WORDS = 5
 
 
 def speech_match(heard, target):
@@ -182,6 +183,7 @@ class Exercise(models.Model):
         DICTATION = "dictation", "Диктовка"
         ORDER = "order", "Подреди думите"
         SPEAK = "speak", "Кажи на глас"
+        WRITE = "write", "Свободно писане"
 
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="exercises", verbose_name="урок")
     type = models.CharField("тип", max_length=10, choices=Type.choices, default=Type.CHOICE)
@@ -193,9 +195,13 @@ class Exercise(models.Model):
     )
     answers = models.CharField(
         "верни отговори", max_length=300, blank=True,
-        help_text="За „Попълни“ и „Преведи“. Няколко варианта се разделят с |",
+        help_text="За „Попълни“ и „Преведи“. Няколко варианта се разделят с |. "
+                  "За „Свободно писане“: примерен отговор.",
     )
-    explanation = models.CharField("обяснение", max_length=300, blank=True)
+    explanation = models.CharField(
+        "обяснение", max_length=300, blank=True,
+        help_text="За „Свободно писане“: точки за самопроверка, разделени с |",
+    )
     order = models.PositiveSmallIntegerField("ред", default=0)
 
     class Meta:
@@ -227,12 +233,25 @@ class Exercise(models.Model):
                 break
         return words
 
+    def min_words(self):
+        """Free writing: the learner's text must be at least half as long as the model answer."""
+        model = self.accepted_answers()
+        return max(MIN_WRITE_WORDS, len(model[0].split()) // 2) if model else MIN_WRITE_WORDS
+
+    def checklist(self):
+        """Free writing: self-check points shown next to the model answer."""
+        return [p.strip() for p in self.explanation.split("|") if p.strip()]
+
     def is_correct_answer(self, value):
         """Return True when value is a correct answer. Choices are checked by id."""
         if self.type == self.Type.CHOICE:
             if not str(value).isdigit():
                 return False
             return self.choices.filter(pk=int(value), is_correct=True).exists()
+        if self.type == self.Type.WRITE:
+            # Open answers can't be graded exactly: a text of reasonable length counts, and the
+            # learner compares it with the model answer and the checklist.
+            return len(re.findall(r"[A-Za-z']+", str(value))) >= self.min_words()
         given = normalize_answer(str(value))
         if self.type == self.Type.SPEAK:
             # Speech recognition is imperfect: accept a close match of the word sequence.
