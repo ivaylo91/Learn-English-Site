@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.core.seed import (
-    batch5, batch6, batch7, courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, more_skills,
+    batch5, batch6, batch7, batch8, courses, courses_advanced, courses_extra, courses_more, courses_skills, listening, mistakes, more_audio, more_skills,
     placement, speaking_writing,
     pronunciation, vocabulary, vocabulary_more,
 )
@@ -33,14 +33,20 @@ def shuffled_choices(prompt, choices, correct):
     return items
 
 
+EXERCISE_FIELDS = ["type", "instruction", "prompt", "audio_text", "answers", "explanation"]
+
+
 class Command(BaseCommand):
     help = "Load starter content (levels, lessons, vocabulary, placement test). Safe to run repeatedly."
 
-    @transaction.atomic
+    # Each unit, the vocabulary and the placement test commit separately: a dropped connection on a long remote
+    # seed keeps what was saved, and running the command again finishes the rest.
     def handle(self, *args, **options):
         self.seed_courses()
-        self.seed_vocabulary()
-        self.seed_placement()
+        with transaction.atomic():
+            self.seed_vocabulary()
+        with transaction.atomic():
+            self.seed_placement()
         self.stdout.write(self.style.SUCCESS("Starter content loaded."))
 
     def seed_courses(self):
@@ -52,43 +58,59 @@ class Command(BaseCommand):
         units = (courses.UNITS + courses_advanced.UNITS + courses_more.UNITS + courses_extra.UNITS + courses_skills.UNITS
                  + pronunciation.UNITS + more_audio.UNITS + speaking_writing.UNITS + listening.UNITS)
         # Extra lessons for units defined elsewhere, appended after that unit's own lessons (in this order).
-        extras = [more_audio.EXTRA_LESSONS, more_skills.EXTRA_LESSONS, batch5.EXTRA_LESSONS, batch6.EXTRA_LESSONS, batch7.EXTRA_LESSONS]
+        extras = [more_audio.EXTRA_LESSONS, more_skills.EXTRA_LESSONS, batch5.EXTRA_LESSONS, batch6.EXTRA_LESSONS, batch7.EXTRA_LESSONS, batch8.EXTRA_LESSONS]
         units = [{**u, "lessons": u["lessons"] + [l for e in extras for l in e.get(u["slug"], [])]} for u in units]
         all_mistakes = {**mistakes.MISTAKES, **courses_more.MISTAKES, **courses_extra.MISTAKES,
-                        **courses_skills.MISTAKES, **more_skills.MISTAKES, **speaking_writing.MISTAKES, **batch5.MISTAKES, **batch6.MISTAKES, **batch7.MISTAKES}
+                        **courses_skills.MISTAKES, **more_skills.MISTAKES, **speaking_writing.MISTAKES, **batch5.MISTAKES, **batch6.MISTAKES, **batch7.MISTAKES, **batch8.MISTAKES}
         lesson_count = 0
         for u in units:
-            unit, _ = Unit.objects.update_or_create(
-                slug=u["slug"],
-                defaults={"level": levels[u["level"]], "title": u["title"], "icon": u["icon"],
-                          "order": u["order"], "summary": u.get("summary", "")},
-            )
-            for order, l in enumerate(u["lessons"], start=1):
-                lesson, _ = Lesson.objects.update_or_create(
-                    slug=l["slug"],
-                    defaults={"unit": unit, "title": l["title"], "title_en": l.get("title_en", ""), "kind": l["kind"],
-                              "summary": l.get("summary", ""), "theory": outline_headings(l["theory"].strip()), "order": order,
-                              "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
-                              "dialogue": l.get("dialogue", ""),
-                              "mistakes": "\n".join(" | ".join(m) for m in all_mistakes.get(l["slug"], []))},
+            with transaction.atomic():
+                unit, _ = Unit.objects.update_or_create(
+                    slug=u["slug"],
+                    defaults={"level": levels[u["level"]], "title": u["title"], "icon": u["icon"],
+                              "order": u["order"], "summary": u.get("summary", "")},
                 )
-                # Exercises are updated in place by position, so learners' mistakes linked to them survive.
-                for ex_order, e in enumerate(l["exercises"], start=1):
-                    exercise, _ = Exercise.objects.update_or_create(
-                        lesson=lesson, order=ex_order,
-                        defaults={"type": e["type"], "instruction": e["instruction"], "prompt": e["prompt"],
-                                  "audio_text": e.get("audio", ""), "answers": e.get("answers", ""),
-                                  "explanation": e.get("explanation", "")},
+                for order, l in enumerate(u["lessons"], start=1):
+                    lesson, _ = Lesson.objects.update_or_create(
+                        slug=l["slug"],
+                        defaults={"unit": unit, "title": l["title"], "title_en": l.get("title_en", ""), "kind": l["kind"],
+                                  "summary": l.get("summary", ""), "theory": outline_headings(l["theory"].strip()),
+                                  "order": order, "minutes": l.get("minutes", 5), "xp_reward": l.get("xp", 10),
+                                  "dialogue": l.get("dialogue", ""),
+                                  "mistakes": "\n".join(" | ".join(m) for m in all_mistakes.get(l["slug"], []))},
                     )
-                    exercise.choices.all().delete()
-                    if e.get("choices"):
-                        Choice.objects.bulk_create(
-                            Choice(exercise=exercise, text=text, is_correct=ok)
-                            for text, ok in shuffled_choices(e["prompt"] + e.get("audio", ""), e["choices"], e["correct"])
-                        )
-                lesson.exercises.filter(order__gt=len(l["exercises"])).delete()
-                lesson_count += 1
+                    self.seed_exercises(lesson, l["exercises"])
+                    lesson_count += 1
         self.stdout.write(f"  {len(levels)} levels, {len(units)} units, {lesson_count} lessons")
+
+    def seed_exercises(self, lesson, items):
+        """Exercises are updated in place by position, so learners' mistakes linked to them survive.
+
+        Saved with bulk queries (a handful per lesson, not several per exercise) to keep remote seeds short.
+        """
+        existing = {ex.order: ex for ex in lesson.exercises.all()}
+        new, changed = [], []
+        for order, e in enumerate(items, start=1):
+            values = {"type": e["type"], "instruction": e["instruction"], "prompt": e["prompt"],
+                      "audio_text": e.get("audio", ""), "answers": e.get("answers", ""),
+                      "explanation": e.get("explanation", "")}
+            exercise = existing.get(order)
+            if exercise is None:
+                new.append(Exercise(lesson=lesson, order=order, **values))
+            else:
+                for field, value in values.items():
+                    setattr(exercise, field, value)
+                changed.append(exercise)
+        lesson.exercises.filter(order__gt=len(items)).delete()
+        Exercise.objects.bulk_create(new)
+        Exercise.objects.bulk_update(changed, EXERCISE_FIELDS)
+        by_order = {ex.order: ex for ex in new + changed}
+        Choice.objects.filter(exercise__lesson=lesson).delete()
+        Choice.objects.bulk_create(
+            Choice(exercise=by_order[order], text=text, is_correct=ok)
+            for order, e in enumerate(items, start=1) if e.get("choices")
+            for text, ok in shuffled_choices(e["prompt"] + e.get("audio", ""), e["choices"], e["correct"])
+        )
 
     def seed_vocabulary(self):
         word_count = 0
