@@ -57,7 +57,17 @@
     window.speechSynthesis.addEventListener("voiceschanged", pickVoice);
   }
 
+  // The voice is English, so Bulgarian text must never reach it (it comes out as garbled noise).
+  // Bulgarian hints in brackets are dropped; text that is still Bulgarian is not spoken at all.
+  var CYRILLIC = /[Ѐ-ӿ]/;
+  function english(text) {
+    var s = String(text || "").replace(/\([^)]*[Ѐ-ӿ][^)]*\)/g, " ");
+    if (CYRILLIC.test(s)) return "";
+    return s.replace(/\s+/g, " ").trim();
+  }
+
   function speak(text, rate) {
+    text = english(text);
     if (!("speechSynthesis" in window) || !text) return false;
     window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
@@ -67,7 +77,7 @@
     window.speechSynthesis.speak(u);
     return true;
   }
-  window.govori = { speak: speak, canSpeak: "speechSynthesis" in window };
+  window.govori = { speak: speak, english: english, canSpeak: "speechSynthesis" in window };
 
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-speak]");

@@ -97,7 +97,7 @@
     // Read the English prompt aloud (not for Bulgarian prompts or audio exercises).
     var canSpeak = !!(window.govori && window.govori.canSpeak);
     el.speakPrompt.hidden = !canSpeak || ex.type === "translate" || ex.type === "dictation" || ex.type === "order" ||
-      ex.type === "write" || !!ex.audio;
+      ex.type === "write" || !!ex.audio || !window.govori.english(ex.prompt);
 
     if (ex.audio) {
       el.area.appendChild(audioBar(ex.audio, canSpeak));
@@ -402,11 +402,13 @@
         }
         if (res.correct && window.govori && ex.type !== "translate" && ex.type !== "order" && ex.type !== "speak" &&
             ex.type !== "write" && !ex.audio) {
-          // Speak the completed sentence for reinforcement.
+          // Speak the completed English sentence for reinforcement (hints in brackets left out).
+          // A Bulgarian question is not read; its English answer is, if there is one.
           var answerText = ex.type === "choice"
             ? (ex.choices.find(function (c) { return String(c.id) === String(res.correct_choice); }) || {}).text
             : res.correct_answer;
-          window.govori.speak(ex.prompt.replace(/_{3,}/g, answerText || ""));
+          var sentence = ex.prompt.replace(/_{3,}/g, answerText || "").replace(/\([^)]*\)/g, " ");
+          window.govori.speak(window.govori.english(sentence) || answerText);
         }
         if (ex.type === "write") showWriteFeedback(res);
         else showFeedback(res);
